@@ -1,3 +1,4 @@
+using BookingSystem.Data;
 using BookingSystem.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ namespace WebBookingSystem
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,8 @@ namespace WebBookingSystem
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddTransient<BookingSystemSeeder>();
+
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -30,6 +33,7 @@ namespace WebBookingSystem
 
             var app = builder.Build();
 
+            RunSeeding(app);
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -41,7 +45,7 @@ namespace WebBookingSystem
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            //df
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
@@ -55,6 +59,17 @@ namespace WebBookingSystem
             app.MapRazorPages();
 
             app.Run();
+        }
+        private static async Task RunSeeding(IHost host)
+        {
+            var scopeFactory = host.Services.GetService<IServiceScopeFactory>();
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                //var seeder = scope.ServiceProvider.GetService<BookingSystemSeeder>();
+                var seeder = scope.ServiceProvider.GetRequiredService<BookingSystemSeeder>();
+                await seeder.Seed();
+            }
         }
     }
 }
