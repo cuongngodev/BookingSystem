@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using BookingSystem.Data.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebBookingSystem.Data
@@ -9,5 +10,7 @@ namespace WebBookingSystem.Data
             : base(options)
         {
         }
+        public DbSet<Service> Services { get; set; }
+
     }
 }
