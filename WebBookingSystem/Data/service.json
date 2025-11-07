@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 0,
+    "Name": "Haircut & Styling",
+    "Duration": 45,
+    "Price": 49.99,
+    "Description": "Professional haircut and blow-dry styling for men or women."
+  },
+  {
+    "Id": 0,
+    "Name": "Manicure & Pedicure",
+    "Duration": 60,
+    "Price": 59.99,
+    "Description": "Complete nail care with polish and hand/foot massage."
+  },
+  {
+    "Id": 0,
+    "Name": "Facial Treatment",
+    "Duration": 75,
+    "Price": 79.99,
+    "Description": "Deep cleansing facial with exfoliation, mask, and hydration."
+  },
+  {
+    "Id": 0,
+    "Name": "Hair Coloring",
+    "Duration": 90,
+    "Price": 99.99,
+    "Description": "Full hair coloring or root touch-up with premium products."
+  },
+  {
+    "Id": 0,
+    "Name": "Makeup Session",
+    "Duration": 60,
+    "Price": 89.99,
+    "Description": "Professional makeup for events, parties, or photoshoots."
+  }
+]
