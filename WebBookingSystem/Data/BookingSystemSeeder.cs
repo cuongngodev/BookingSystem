@@ -15,7 +15,7 @@ namespace BookingSystem.Data
             ApplicationDbContext db, 
             IWebHostEnvironment hosting,
             RoleManager<IdentityRole<int>> roleManager
-            )
+        )
         {
             _db = db;
             _hosting = hosting;
