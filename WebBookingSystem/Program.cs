@@ -3,6 +3,8 @@ using BookingSystem.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebBookingSystem.Data;
+using WebBookingSystem.Data.Intefaces;
+using WebBookingSystem.Data.Repositories;
 
 namespace WebBookingSystem
 {
@@ -30,6 +32,13 @@ namespace WebBookingSystem
                 .AddDefaultTokenProviders();
 
             builder.Services.AddRazorPages();
+
+            // Repositories and Unit of Work
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
 
             var app = builder.Build();
 
