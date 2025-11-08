@@ -8,10 +8,12 @@ namespace WebBookingSystem.Data.Repositories
         private readonly ApplicationDbContext _context;
         private ServiceRepository _serviceRepository;
         private bool disposedValue;
+        private readonly ILoggerFactory _logger;
 
-        public UnitOfWork(ApplicationDbContext context)
+        public UnitOfWork(ApplicationDbContext context, ILoggerFactory logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public ServiceRepository ServicesRepository
@@ -20,7 +22,8 @@ namespace WebBookingSystem.Data.Repositories
             {
                 if (_serviceRepository == null)
                 {
-                    _serviceRepository = new(_context);
+                    var logger = _logger.CreateLogger<ServiceRepository>();
+                    _serviceRepository = new(_context, logger);
                 }
                 return _serviceRepository;
             }
