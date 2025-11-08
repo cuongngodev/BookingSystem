@@ -5,17 +5,37 @@ namespace WebBookingSystem.Data.Repositories
 {
     public class ServiceRepository : GenericRepository<Service>, IServiceRepository
     {
-        public ServiceRepository(ApplicationDbContext context) : base(context)
+        private readonly ILogger<ServiceRepository> _logger;
+        public ServiceRepository(ApplicationDbContext context, ILogger<ServiceRepository> logger) : base(context, logger)
         {
+            _logger = logger;
         }
 
         public IEnumerable<Service> GetServicesUnderPrice(decimal maxPrice)
         {
-            return _dbSet.Where(s => s.Price < maxPrice).ToList();
+            _logger.LogInformation("Fetching services under price {MaxPrice} at {Time}", maxPrice, DateTime.Now);
+            try
+            {
+                return _dbSet.Where(s => s.Price < maxPrice).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching services under price {MaxPrice} at {Time}", maxPrice, DateTime.Now);
+                throw;
+            }
         }
         public Service? GetServiceByName(string name)
         {
-            return _dbSet.FirstOrDefault(s => s.Name == name);
+            _logger.LogInformation("Fetching service with name {ServiceName} at {Time}", name, DateTime.Now);
+            try
+            {
+                return _dbSet.FirstOrDefault(s => s.Name == name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching service with name {ServiceName} at {Time}", name, DateTime.Now);
+                throw;
+            }
         }
     }
 }
