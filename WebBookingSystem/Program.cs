@@ -48,14 +48,22 @@ namespace WebBookingSystem
                     options.UseSqlServer(connectionString));
                 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-                //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
                 builder.Services.AddControllersWithViews();
                 builder.Services.AddTransient<BookingSystemSeeder>();
 
 
-                builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
+                // Enable Identity with custom ApplicationUser and integer keys
+                builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(
+                    options =>
+                    {
+                        // Enable password complexity requirements
+                        options.Password.RequireDigit = true;
+                        options.Password.RequireLowercase = true;
+                        options.Password.RequireNonAlphanumeric = false;
+                        options.Password.RequireUppercase = true;
+                        options.Password.RequiredLength = 6;
+                    })
                     .AddEntityFrameworkStores<ApplicationDbContext>()
                     .AddDefaultTokenProviders();
 
