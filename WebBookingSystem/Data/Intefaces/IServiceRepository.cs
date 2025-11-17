@@ -6,7 +6,5 @@ namespace WebBookingSystem.Data.Intefaces
     {
         Service? GetServiceByName(string name);
         IEnumerable<Service> GetServicesUnderPrice(decimal maxPrice);
-
-
     }
 }
