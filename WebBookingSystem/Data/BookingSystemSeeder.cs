@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Text.Json;
 using BookingSystem.Data.Entities;
 using WebBookingSystem.Data;
+using System.Threading.Tasks;
 namespace BookingSystem.Data
 {
     public class BookingSystemSeeder
@@ -10,18 +11,21 @@ namespace BookingSystem.Data
         private readonly ApplicationDbContext _db;
         private readonly IWebHostEnvironment _hosting;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<BookingSystemSeeder> _logger;
 
         public BookingSystemSeeder(
             ApplicationDbContext db, 
             IWebHostEnvironment hosting,
             RoleManager<IdentityRole<int>> roleManager,
+            UserManager<ApplicationUser> userManager,
             ILogger<BookingSystemSeeder> logger
         )
         {
             _db = db;
             _hosting = hosting;
             _roleManager = roleManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -39,7 +43,10 @@ namespace BookingSystem.Data
 
                 // Create service
                 await SeedServiceAsync();
-                //
+
+                // Create admin user
+                await SeedAdminUser();
+                
                 _logger.LogInformation("Database seeding completed successfully at {Time}", DateTime.Now);
             }
             catch (Exception ex)
@@ -116,6 +123,49 @@ namespace BookingSystem.Data
                 }
             }
         }
+
+        private async Task SeedAdminUser()
+        {
+            if (!_userManager.Users.Any())
+            {
+                var admin = new ApplicationUser
+                {
+                    UserName = "adminpro",
+                    Email = "adminpro@gmail.com",
+                    LastName = "Admin",
+                    FirstName = "Pro",
+                    EmailConfirmed = true,
+                    PhoneNumber = "1234567890",
+                };
+
+                // Create user with pwd
+                var result = await _userManager.CreateAsync(admin, "Admin123@");
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation("Admin user created successfully: {Email}", admin.Email);
+
+                    var roleResult = await _userManager.AddToRoleAsync(admin, "Admin");
+                    if (roleResult.Succeeded)
+                    {
+                        _logger.LogInformation("Admin user assigned to 'Admin' role successfully.");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to assign Admin role: {Errors}",
+                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    }
+                }
+                else
+                {
+                    // Log detailed reason why CreateAsync failed
+                    foreach (var error in result.Errors)
+                    {
+                        _logger.LogError("User creation error: {Code} - {Description}", error.Code, error.Description);
+                    }
+                }
+            }
+        }
+
   
     }
 }
