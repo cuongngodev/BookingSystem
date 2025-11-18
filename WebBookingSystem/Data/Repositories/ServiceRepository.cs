@@ -24,7 +24,7 @@ namespace WebBookingSystem.Data.Repositories
                 throw;
             }
         }
-        public Service? GetServiceByName(string name)
+        public Service GetServiceByName(string name)
         {
             _logger.LogInformation("Fetching service with name {ServiceName} at {Time}", name, DateTime.Now);
             try
@@ -38,6 +38,9 @@ namespace WebBookingSystem.Data.Repositories
             }
         }
 
-        
+        public IEnumerable<Service> GetAllServices()
+        {
+            return _dbSet.ToList();
+        }
     }
 }

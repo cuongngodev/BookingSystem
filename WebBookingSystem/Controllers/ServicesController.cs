@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace WebBookingSystem.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
     public class ServicesController : Controller
     {       
         private readonly ILogger<ServicesController> _logger;
@@ -30,21 +28,20 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Services/Details/5
-        [HttpGet]
-        public async Task<IActionResult> Details(string name)
+        [AllowAnonymous]
+        public IActionResult Details(int id)
         {
-            var service = _unitOfWork.ServicesRepository.GetServiceByName(name);
+            var service = _unitOfWork.ServicesRepository.GetById(id);
             if (service == null)
             {
                 return NotFound();
             }
-
             return View(service);
         }
         #endregion
 
         #region GET: Services/Create
-        [HttpGet]
+        [HttpGet] // GET: Services/Create
         public IActionResult Create()
         {
             return View();
@@ -53,7 +50,7 @@ namespace WebBookingSystem.Controllers
         // POST: Services/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("Id,Name,Duration,Price,Description")] Service service)
+        public IActionResult Create(Service service)
         {
             if (ModelState.IsValid)
             {
@@ -82,7 +79,7 @@ namespace WebBookingSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, [Bind("Id,Name,Duration,Price,Description")] Service service)
+        public IActionResult Edit(int id, Service service)
         {
             if (id != service.Id)
             {

@@ -4,8 +4,6 @@ using WebBookingSystem.Data.Intefaces;
 
 using System.Threading.Tasks;
 
-
-
 namespace WebBookingSystem.Data.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
