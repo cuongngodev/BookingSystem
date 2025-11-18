@@ -13,7 +13,6 @@ namespace WebBookingSystem.Data.Repositories
 
         public IEnumerable<Service> GetServicesUnderPrice(decimal maxPrice)
         {
-            _logger.LogInformation("Fetching services under price {MaxPrice} at {Time}", maxPrice, DateTime.Now);
             try
             {
                 return _dbSet.Where(s => s.Price < maxPrice).ToList();
@@ -26,7 +25,6 @@ namespace WebBookingSystem.Data.Repositories
         }
         public Service GetServiceByName(string name)
         {
-            _logger.LogInformation("Fetching service with name {ServiceName} at {Time}", name, DateTime.Now);
             try
             {
                 return _dbSet.FirstOrDefault(s => s.Name == name);

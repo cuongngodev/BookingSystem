@@ -6,5 +6,6 @@ namespace WebBookingSystem.Data.Intefaces
     {
         IEnumerable<Appointment> GetAppointmentsByUser(int userId);
         IEnumerable<Appointment> GetUpcomingAppointments();
+        IEnumerable<Appointment> GetAppointmentsByStatus(AppointmentStatus status);
     }
 }

@@ -14,7 +14,6 @@ namespace WebBookingSystem.Controllers
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
-
         }
 
         #region  GET: Services
@@ -22,7 +21,7 @@ namespace WebBookingSystem.Controllers
         [HttpGet]
         public IActionResult Index()
         {
-            var services = _unitOfWork.ServicesRepository.GetAll();
+            var services = _unitOfWork.ServiceRepository.GetAll();
             return View(services);
         }
         #endregion
@@ -31,7 +30,7 @@ namespace WebBookingSystem.Controllers
         [AllowAnonymous]
         public IActionResult Details(int id)
         {
-            var service = _unitOfWork.ServicesRepository.GetById(id);
+            var service = _unitOfWork.ServiceRepository.GetById(id);
             if (service == null)
             {
                 return NotFound();
@@ -54,8 +53,8 @@ namespace WebBookingSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.ServicesRepository.Add(service);
-                _unitOfWork.ServicesRepository.SaveAll();
+                _unitOfWork.ServiceRepository.Add(service);
+                _unitOfWork.ServiceRepository.SaveAll();
                 return RedirectToAction(nameof(Index));
             }
             return View(service);
@@ -65,7 +64,7 @@ namespace WebBookingSystem.Controllers
         # region GET: Services/Edit/5
         public IActionResult Edit(int id)
         {
-            var service = _unitOfWork.ServicesRepository.GetById(id);
+            var service = _unitOfWork.ServiceRepository.GetById(id);
             if ( service == null)
             {
                 return NotFound();
@@ -88,8 +87,8 @@ namespace WebBookingSystem.Controllers
 
             if (ModelState.IsValid)
             {
-                _unitOfWork.ServicesRepository.Update(service);
-                _unitOfWork.ServicesRepository.SaveAll();
+                _unitOfWork.ServiceRepository.Update(service);
+                _unitOfWork.ServiceRepository.SaveAll();
                 return RedirectToAction(nameof(Index));
             }
             return View(service);
@@ -99,8 +98,8 @@ namespace WebBookingSystem.Controllers
         #region GET: Services/Delete/5  
         public IActionResult Delete(int id)
         {
-            var service = _unitOfWork.ServicesRepository.GetById(id);
-            if (id == null)
+            var service = _unitOfWork.ServiceRepository.GetById(id);
+            if (service == null)
             {
                 return NotFound();
             }
@@ -112,11 +111,11 @@ namespace WebBookingSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            var service = _unitOfWork.ServicesRepository.GetById(id);
+            var service = _unitOfWork.ServiceRepository.GetById(id);
             if (service != null)
             {
-                _unitOfWork.ServicesRepository.Delete(service);
-                _unitOfWork.ServicesRepository.SaveAll();
+                _unitOfWork.ServiceRepository.Delete(service);
+                _unitOfWork.ServiceRepository.SaveAll();
             }
 
             return RedirectToAction(nameof(Index));
