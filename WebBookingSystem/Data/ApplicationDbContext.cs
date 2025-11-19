@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using WebBookingSystem.Data.Entities;
 
 namespace WebBookingSystem.Data
 {
@@ -12,6 +13,8 @@ namespace WebBookingSystem.Data
         {
         }
         public DbSet<Service> Services { get; set; }
+
+        public DbSet<Appointment> Appointments { get; set; }
 
     }
 }

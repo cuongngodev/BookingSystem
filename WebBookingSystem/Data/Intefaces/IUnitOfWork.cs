@@ -5,6 +5,7 @@ namespace WebBookingSystem.Data.Intefaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        ServiceRepository ServicesRepository { get; }
+        ServiceRepository ServiceRepository { get; }
+        AppointmentRepository AppointmentRepository { get; }
     }
 }

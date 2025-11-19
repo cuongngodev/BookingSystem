@@ -7,6 +7,7 @@ namespace WebBookingSystem.Data.Repositories
     {
         private readonly ApplicationDbContext _context;
         private ServiceRepository _serviceRepository;
+        private AppointmentRepository _appointmentRepository;
         private bool disposedValue;
         private readonly ILoggerFactory _logger;
 
@@ -16,7 +17,7 @@ namespace WebBookingSystem.Data.Repositories
             _logger = logger;
         }
 
-        public ServiceRepository ServicesRepository
+        public ServiceRepository ServiceRepository
         {
             get
             {
@@ -27,6 +28,20 @@ namespace WebBookingSystem.Data.Repositories
                 }
                 return _serviceRepository;
             }
+        }
+
+        public AppointmentRepository AppointmentRepository
+        {
+            get
+            {
+                if (_appointmentRepository == null)
+                {
+                    var logger = _logger.CreateLogger<AppointmentRepository>();
+                    _appointmentRepository = new(_context, logger);
+                }
+                return _appointmentRepository;
+            }
+
         }
 
         // Save all changes in one go
