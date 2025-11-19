@@ -11,42 +11,53 @@
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
+            <!-- Hidden values -->
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="ServiceId" />
+            <input type="hidden" asp-for="Status" />
+
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
+            @* <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
                 <input asp-for="UserId" class="form-control" />
                 <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
+            </div> *@
+            @* <div class="form-group">
                 <label asp-for="ServiceId" class="control-label"></label>
                 <input asp-for="ServiceId" class="form-control" />
                 <span asp-validation-for="ServiceId" class="text-danger"></span>
-            </div>
+            </div> *@
+
+            <!-- Appointment time -->
             <div class="form-group">
                 <label asp-for="AppointmentTime" class="control-label"></label>
                 <input asp-for="AppointmentTime" class="form-control" />
                 <span asp-validation-for="AppointmentTime" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            @* <div class="form-group">
                 <label asp-for="Status" class="control-label"></label>
                 <select asp-for="Status" class="form-control"></select>
                 <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
+            </div> *@
+
+            <!-- Notes -->
             <div class="form-group">
                 <label asp-for="Notes" class="control-label"></label>
                 <input asp-for="Notes" class="form-control" />
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <!-- Buttons -->
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary me-2" >Create</button>
+                <a asp-controller="Services" asp-action="Index" class="btn btn-secondary">
+                    Back to Services
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

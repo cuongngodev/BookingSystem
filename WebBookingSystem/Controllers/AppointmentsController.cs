@@ -20,7 +20,7 @@ namespace WebBookingSystem.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        #region GET: Appointments
+        #region GET: Appointments (Admin)
         public IActionResult Index()
         {
             var appointments = _unitOfWork.AppointmentRepository.GetAll();
@@ -28,7 +28,7 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        #region GET: Appointments/Details/5
+        #region GET: Appointments/Details/{id}
         public IActionResult Details(int? id)
         {
             var appointment = _unitOfWork.AppointmentRepository.GetById(id);
@@ -41,21 +41,35 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        #region GET: Appointments/Create
-        public IActionResult Create()
+        #region GET: Appointments/Create (From Service)
+        public IActionResult Create(int serviceId)
         {
-            return View();
-        }
+            var appointment = new Appointment
+            {
+                ServiceId = serviceId,
+                UserId = 1, // test user
+                Status = AppointmentStatus.Pending
+            };
 
-       
-        [HttpPost]  // POST: Appointments/Create
+            return View(appointment);
+        }
+        #endregion
+
+        #region POST: Appointments/Create
+        [HttpPost]  
         [ValidateAntiForgeryToken]
         public IActionResult Create(Appointment appointment)
         {
+            // only for testing
+            // after user class readt, it will use userId to make an appoinment
+            appointment.UserId = 1;
+            appointment.Status = AppointmentStatus.Pending;
+            appointment.UpdatedAt = DateTime.Now;
+
             if (ModelState.IsValid)
             {
-               _unitOfWork.AppointmentRepository.Add(appointment);
-               _unitOfWork.AppointmentRepository.SaveAll();
+                _unitOfWork.AppointmentRepository.Add(appointment);
+                _unitOfWork.AppointmentRepository.SaveAll();
                 return RedirectToAction(nameof(Index));
             }
             return View(appointment);
@@ -71,12 +85,12 @@ namespace WebBookingSystem.Controllers
             {
                 return NotFound();
             }
+
             return View(appointment);
         }
+        #endregion
 
-        // POST: Appointments/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        #region POST: Appointments/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Appointment appointment)
@@ -85,9 +99,13 @@ namespace WebBookingSystem.Controllers
             {
                 return BadRequest();
             }
+            // only admin can change status
+            // user cannot change serviceId or userId
+            appointment.UpdatedAt = DateTime.Now;
 
             if (ModelState.IsValid)
             {
+                appointment.UpdatedAt = DateTime.Now;
                 _unitOfWork.AppointmentRepository.Update(appointment);
                 _unitOfWork.AppointmentRepository.SaveAll();
                 return RedirectToAction(nameof(Index));
@@ -96,7 +114,7 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        #region GET: Appointments/Delete/5
+        #region GET: Appointments/Delete/{id}
         public IActionResult Delete(int id)
         {
             var appointment = _unitOfWork.AppointmentRepository.GetById(id);
@@ -106,19 +124,34 @@ namespace WebBookingSystem.Controllers
             }
             return View(appointment);
         }
+        #endregion
 
-        // POST: Appointments/Delete/5
+        #region POST: Appointments/Delete/{id}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             var appointment = _unitOfWork.AppointmentRepository.GetById(id);
+
             if (appointment != null)
             {
                 _unitOfWork.AppointmentRepository.Delete(appointment);
                 _unitOfWork.AppointmentRepository.SaveAll();
             }
             return RedirectToAction(nameof(Index));
+        }
+        #endregion
+
+        #region  GET: User's Appointments
+        public IActionResult MyAppointments()
+        {
+            // only for testing,
+            // after user class readt, it will use userId to make an appoinment
+            int currentUserId = 1;
+
+            var appointments = _unitOfWork.AppointmentRepository.GetAppointmentsByUser(currentUserId);
+
+            return View(appointments);
         }
         #endregion
     }

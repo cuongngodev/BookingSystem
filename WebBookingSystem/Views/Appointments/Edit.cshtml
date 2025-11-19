@@ -1,4 +1,5 @@
-﻿@model WebBookingSystem.Data.Entities.Appointment
+﻿@using WebBookingSystem.Data.Entities
+@model WebBookingSystem.Data.Entities.Appointment
 
 @{
     ViewData["Title"] = "Edit";
@@ -12,8 +13,13 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <!-- Hidden fields -->
             <input type="hidden" asp-for="Id" />
-            <div class="form-group">
+            <input type="hidden" asp-for="UserId" />
+            <input type="hidden" asp-for="ServiceId" />
+
+            @* <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
                 <input asp-for="UserId" class="form-control" />
                 <span asp-validation-for="UserId" class="text-danger"></span>
@@ -22,31 +28,36 @@
                 <label asp-for="ServiceId" class="control-label"></label>
                 <input asp-for="ServiceId" class="form-control" />
                 <span asp-validation-for="ServiceId" class="text-danger"></span>
-            </div>
+            </div> *@
+
+            <!-- Appointment time -->
             <div class="form-group">
                 <label asp-for="AppointmentTime" class="control-label"></label>
                 <input asp-for="AppointmentTime" class="form-control" />
                 <span asp-validation-for="AppointmentTime" class="text-danger"></span>
             </div>
+      
+            <!-- Status - only Admin will use later -->
             <div class="form-group">
                 <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
+                <select asp-for="Status" class="form-control"
+                        asp-items="Html.GetEnumSelectList<AppointmentStatus>()">
+                </select>
                 <span asp-validation-for="Status" class="text-danger"></span>
             </div>
+
+            <!-- Notes -->
             <div class="form-group">
                 <label asp-for="Notes" class="control-label"></label>
                 <input asp-for="Notes" class="form-control" />
                 <span asp-validation-for="Notes" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-action="Index" class="btn btn-light">Back to List</a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

@@ -31,7 +31,7 @@ namespace BookingSystem.Data
             {
                 _logger.LogInformation("Starting database seeding at {Time}", DateTime.Now);
                 //Verify that the database exists. Hover over the method and read the documentation. 
-                _db.Database.EnsureCreated();
+                //_db.Database.EnsureCreated();
                 _logger.LogInformation("Database verified/created successfully.");
                 
                 //  Create roles
@@ -47,9 +47,6 @@ namespace BookingSystem.Data
                 _logger.LogError(ex, "Error occurred during seeding at {Time}", DateTime.Now);
                 throw;
             }
-
-
-
         }
         private async Task SeedServiceAsync()
         {

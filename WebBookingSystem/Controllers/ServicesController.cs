@@ -26,7 +26,7 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        #region GET: Services/Details/5
+        #region GET: Services/Details/{id}
         [AllowAnonymous]
         public IActionResult Details(int id)
         {
@@ -40,13 +40,15 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Services/Create
-        [HttpGet] // GET: Services/Create
+        [HttpGet] 
         public IActionResult Create()
         {
             return View();
         }
+        #endregion
 
-        // POST: Services/Create
+
+        #region POST: Services/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Service service)
@@ -61,7 +63,7 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        # region GET: Services/Edit/5
+        #region GET: Services/Edit/{id}
         public IActionResult Edit(int id)
         {
             var service = _unitOfWork.ServiceRepository.GetById(id);
@@ -72,10 +74,9 @@ namespace WebBookingSystem.Controllers
 
             return View(service);
         }
+        #endregion
 
-        // POST: Services/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        #region POST: Services/Edit/{id}
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Service service)
@@ -95,7 +96,7 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        #region GET: Services/Delete/5  
+        #region GET: Services/Delete/{id}
         public IActionResult Delete(int id)
         {
             var service = _unitOfWork.ServiceRepository.GetById(id);
@@ -105,8 +106,9 @@ namespace WebBookingSystem.Controllers
             }
             return View(service);
         }
+        #endregion
 
-        // POST: Services/Delete/5
+        #region POST: Services/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)

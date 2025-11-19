@@ -12,9 +12,7 @@ namespace WebBookingSystem
     public class Program
     {
         public static async Task Main(string[] args)
-        {
-           
-
+        {         
 
             // Create a unique log filename per app run
             var logFileName = $"Logs/log-{DateTime.Now:yyyyMMdd_HHmmss}.txt";
