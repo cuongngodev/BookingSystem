@@ -2,10 +2,12 @@ using BookingSystem.Data;
 using BookingSystem.Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using System.Text;
 using WebBookingSystem.Data;
 using WebBookingSystem.Data.Intefaces;
 using WebBookingSystem.Data.Repositories;
-using Serilog;
 
 namespace WebBookingSystem
 {
@@ -39,9 +41,34 @@ namespace WebBookingSystem
 
             try
             { 
+
                 var builder = WebApplication.CreateBuilder(args);
                 builder.Host.UseSerilog();
 
+
+                // JWT setup
+                var jwtKey = builder.Configuration["Jwt:Key"];
+                var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+                var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+                builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = "JwtBearer";
+                    options.DefaultChallengeScheme = "JwtBearer";
+                })
+                .AddJwtBearer("JwtBearer", options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtIssuer,
+                        ValidAudience = jwtAudience,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                    };
+                });
                 // Add services to the container.
                 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -96,6 +123,7 @@ namespace WebBookingSystem
 
                 app.UseRouting();
 
+                app.UseAuthentication();
                 app.UseAuthorization();
 
                 app.MapControllerRoute(
