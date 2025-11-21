@@ -53,13 +53,15 @@ namespace WebBookingSystem.Controllers
                 ModelState.AddModelError("", "User already exists");
                 return View(registerVM);
             }
+            var username = GenerateUsernameFromEmail(registerVM.Email);
 
             ApplicationUser user = new ApplicationUser()
             {
                 Email = registerVM.Email,
                 FirstName = registerVM.FirstName,
                 LastName = registerVM.LastName,
-                UserName = GenerateUsernameFromEmail(registerVM.Email),
+                UserName = username,
+                EmailConfirmed = true,
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
             // create user
@@ -67,6 +69,11 @@ namespace WebBookingSystem.Controllers
 
             if(result.Succeeded)
             {
+                user.NormalizedEmail = user.Email.ToUpper();
+                user.NormalizedUserName = user.UserName.ToUpper();
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction("Login", "Auth");
             }
             foreach (var error in result.Errors)
