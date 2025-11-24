@@ -2,23 +2,43 @@
 @{
     ViewData["Title"] = "Register";
 }
-<h2>Register</h2>
-<form asp-controller="Auth" asp-action="Register" method="post">
-    <div class="form-group">
-        <label asp-for="FirstName"></label>
-        <input asp-for="FirstName" class="form-control" />
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg p-4" style="width: 450px; border-radius: 15px;">
+        <h3 class="text-center mb-4">Create Your Account</h3>
+
+        <form asp-controller="Auth" asp-action="Register" method="post">
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" type="password" />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100 py-2">Register</button>
+
+            <div class="text-center mt-3">
+                <small>
+                    Already have an account?
+                    <a href="/Auth/Login">Login</a>
+                </small>
+            </div>
+        </form>
     </div>
-    <div class="form-group">
-        <label asp-for="LastName"></label>
-        <input asp-for="LastName" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" />
-    </div>
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" class="form-control" />
-    </div>
-    <button type="submit" class="btn btn-primary">Register</button>
-</form>
+</div>
