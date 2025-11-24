@@ -70,8 +70,6 @@ namespace WebBookingSystem.Controllers
 
             if(result.Succeeded)
             {
-                user.NormalizedEmail = user.Email.ToUpper();
-                user.NormalizedUserName = user.UserName.ToUpper();
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
@@ -121,7 +119,6 @@ namespace WebBookingSystem.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
-
         [AllowAnonymous]
         public IActionResult AccessDenied()
         {
