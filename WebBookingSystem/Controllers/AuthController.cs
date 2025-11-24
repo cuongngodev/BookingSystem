@@ -98,16 +98,33 @@ namespace WebBookingSystem.Controllers
                 return View(loginVM);
 
             var user = await _userManager.FindByEmailAsync(loginVM.Email);
-            if (user != null)
+            if (user== null) // check if exists
+             // not exists
             {
-                var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, false);
-                if (result.Succeeded)
-                {
-                    return RedirectToAction("Index", "Home");
-                }
+                ModelState.AddModelError(string.Empty, "No account found with this email.");
+                return View(loginVM);
+            }
+            // check if email is confirmed 
+            if (!user.EmailConfirmed)
+            {
+                ModelState.AddModelError(string.Empty, "Please verify your email before logging in.");
+                return View(loginVM);
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            // start the try to login
+
+            var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+          
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Incorrect password. Please try again.");
+            }
+
             return View(loginVM);
         }
 
