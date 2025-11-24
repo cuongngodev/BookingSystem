@@ -1,0 +1,120 @@
+﻿@model WebBookingSystem.Models.LoginVM
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card shadow-lg p-4" style="width: 400px; border-radius: 15px;">
+        <h3 class="text-center mb-4">Login</h3>
+
+        <form asp-controller="Auth" asp-action="Login" method="post" id="loginForm">
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" id="Email"  />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label" ></label>
+                <input asp-for="Password" class="form-control" type="password" id="Password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2">Login</button>
+
+            <div class="text-center mt-3">
+                <small>
+                    Don't have an account?
+                    <a href="/Auth/Register">Register</a>
+                </small>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            const form = document.getElementById('loginForm');
+            const token = localStorage.getItem('jwt');
+            const expiration = localStorage.getItem('jwt_expiration');
+
+            // Auto-login if token exists and is not expired
+            if (token && expiration) {
+                const expDate = new Date(expiration);
+                const now = new Date();
+
+                if (now < expDate) {
+                    try {
+                        const response = await fetch('/Auth/VerifyToken', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(token)
+                        });
+
+                        if (response.ok) {
+                            // Token valid → redirect to home
+                            window.location.href = '/Home/Index';
+                            return;
+                        } else {
+                            // Token invalid → clear it
+                            localStorage.removeItem('jwt');
+                            localStorage.removeItem('jwt_expiration');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        localStorage.removeItem('jwt');
+                        localStorage.removeItem('jwt_expiration');
+                    }
+                } else {
+                    // Token expired → remove it
+                    localStorage.removeItem('jwt');
+                    localStorage.removeItem('jwt_expiration');
+                }
+            }
+
+            // Handle login form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = document.getElementById('Email').value;
+                const password = document.getElementById('Password').value;
+
+                try {
+                    const response = await fetch('/Auth/Login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        alert(error.message || "Login failed");
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    // Save token to localStorage
+                    localStorage.setItem('jwt', data.token);
+                    localStorage.setItem('jwt_expiration', data.expiration);
+
+                    alert("Login successful! Token saved.");
+                    window.location.href = '/Home/Index'; // redirect after login
+                } catch (err) {
+                    console.error(err);
+                    alert("An error occurred during login.");
+                }
+            });
+        });
+    </script>
+}
+
+
