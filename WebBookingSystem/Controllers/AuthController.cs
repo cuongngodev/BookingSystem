@@ -1,4 +1,5 @@
 ﻿using BookingSystem.Data.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebBookingSystem.Data;
@@ -120,6 +121,13 @@ namespace WebBookingSystem.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
         public static string GenerateUsernameFromEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
