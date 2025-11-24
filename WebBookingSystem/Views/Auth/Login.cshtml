@@ -7,12 +7,14 @@
     <div class="card shadow-lg p-4" style="width: 400px; border-radius: 15px;">
         <h3 class="text-center mb-4">Login</h3>
 
-        <form asp-controller="Auth" asp-action="Login" method="post" id="loginForm">
-            <div class="mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" id="Email"  />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
+<form asp-controller="Auth" asp-action="Login" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
 
 
             <div class="mb-3">

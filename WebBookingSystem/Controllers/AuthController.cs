@@ -1,4 +1,5 @@
 ﻿using BookingSystem.Data.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebBookingSystem.Data;
@@ -83,10 +84,6 @@ namespace WebBookingSystem.Controllers
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User created successfully: {Email}", user.Email);
-
-                user.NormalizedEmail = user.Email.ToUpper();
-                user.NormalizedUserName = user.UserName.ToUpper();
                 _context.Update(user);
                 await _context.SaveChangesAsync();
 
@@ -125,26 +122,34 @@ namespace WebBookingSystem.Controllers
             }
 
             var user = await _userManager.FindByEmailAsync(loginVM.Email);
-
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginVM.Password))
+            if (user== null) // check if exists
+             // not exists
             {
-                var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, false);
-
-                if (result.Succeeded)
-                {
-                    var token = jwtService.GenerateToken(user);
-                    _logger.LogInformation("Login successful for email {Email}", loginVM.Email);
-
-                    return Ok(new
-                    {
-                        token,
-                        expiration = DateTime.UtcNow.AddMinutes(60)
-                    });
-                }
+                ModelState.AddModelError(string.Empty, "No account found with this email.");
+                return View(loginVM);
+            }
+            // check if email is confirmed 
+            if (!user.EmailConfirmed)
+            {
+                ModelState.AddModelError(string.Empty, "Please verify your email before logging in.");
+                return View(loginVM);
             }
 
-            _logger.LogWarning("Login failed for email {Email}: Invalid credentials.", loginVM.Email);
-            return Unauthorized(new { message = "Invalid login attempt." });
+            // start the try to login
+
+            var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+          
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Incorrect password. Please try again.");
+            }
+
+            return View(loginVM);
         }
         #endregion
 
@@ -156,6 +161,12 @@ namespace WebBookingSystem.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+        [AllowAnonymous]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
         #endregion
 
         #region POST: /Auth/VerifyToken

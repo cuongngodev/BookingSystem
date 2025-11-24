@@ -40,7 +40,8 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Services/Create
-        [HttpGet] 
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
         public IActionResult Create()
         {
             return View();
@@ -49,6 +50,7 @@ namespace WebBookingSystem.Controllers
 
 
         #region POST: Services/Create
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Service service)
@@ -64,6 +66,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Services/Edit/{id}
+        [Authorize(Roles = "Admin")]
         public IActionResult Edit(int id)
         {
             var service = _unitOfWork.ServiceRepository.GetById(id);
@@ -77,6 +80,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Services/Edit/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Service service)
@@ -97,6 +101,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Services/Delete/{id}
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
             var service = _unitOfWork.ServiceRepository.GetById(id);
@@ -109,6 +114,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Services/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)

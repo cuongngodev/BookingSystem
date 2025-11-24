@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,8 @@ using WebBookingSystem.Data.Intefaces;
 
 namespace WebBookingSystem.Controllers
 {
+    [Authorize] // all actions require a logged-in user
+
     public class AppointmentsController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -23,6 +26,8 @@ namespace WebBookingSystem.Controllers
         }
 
         #region GET: Appointments (Admin)
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet]
         public IActionResult Index()
         {
             _logger.LogInformation("Fetching all appointments for admin.");
@@ -34,7 +39,7 @@ namespace WebBookingSystem.Controllers
 
         }
         #endregion
-
+        [Authorize(Roles = "Customer,Admin")]
         #region GET: Appointments/Details/{id}
         public IActionResult Details(int? id)
         {
@@ -58,6 +63,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Appointments/Create (From Service)
+        [Authorize(Roles = "Customer,Admin")]
         public IActionResult Create(int serviceId)
         {
             _logger.LogInformation($"Opening create appointment page for service ID: {serviceId}");
@@ -101,6 +107,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Appointments/Edit/{id}
+        [Authorize(Roles = "Admin,Employee")]
         public IActionResult Edit(int id)
         {
             _logger.LogInformation($"Fetching appointment for update (ID: {id}).");
@@ -117,6 +124,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Appointments/Edit/5
+        [Authorize(Roles = "Admin,Employee")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Appointment appointment)
@@ -159,6 +167,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Appointments/Delete/{id}
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
             _logger.LogInformation($"Opening delete confirmation for appointment ID {id}.");
@@ -173,6 +182,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Appointments/Delete/{id}
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -204,6 +214,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region  GET: User's Appointments
+        [Authorize]
         public IActionResult MyAppointments()
         {
             // only for testing,

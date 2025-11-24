@@ -47,7 +47,11 @@ namespace BookingSystem.Data
 
                 // Create admin user
                 await SeedAdminUser();
-                
+
+                // Create employee user
+                await SeedEmployeeUser();
+
+
                 _logger.LogInformation("Database seeding completed successfully at {Time}", DateTime.Now);
             }
             catch (Exception ex)
@@ -122,10 +126,18 @@ namespace BookingSystem.Data
             }
         }
 
+        /// <summary>
+        /// See User (Admin, Employee)
+        /// </summary>
+        /// <returns></returns>
         private async Task SeedAdminUser()
         {
             if (!_userManager.Users.Any())
             {
+
+                /**
+                 * Create User as Admin
+                 */
                 var admin = new ApplicationUser
                 {
                     UserName = "adminpro",
@@ -134,14 +146,15 @@ namespace BookingSystem.Data
                     FirstName = "Pro",
                     EmailConfirmed = true,
                     PhoneNumber = "1234567890",
+                
                 };
 
-                // Create user with pwd
+                // Create admin with pwd
                 var result = await _userManager.CreateAsync(admin, "Admin123@");
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("Admin user created successfully: {Email}", admin.Email);
-
+                    // Add role
                     var roleResult = await _userManager.AddToRoleAsync(admin, "Admin");
                     if (roleResult.Succeeded)
                     {
@@ -160,9 +173,57 @@ namespace BookingSystem.Data
                     {
                         _logger.LogError("User creation error: {Code} - {Description}", error.Code, error.Description);
                     }
-                }
+                }             
             }
         }
+        /// <summary>
+        /// See User (Admin, Employee)
+        /// </summary>
+        /// <returns></returns>
+        private async Task SeedEmployeeUser()
+        {
+ 
+
+                /**
+                 * Create User as Employee
+                 */
+
+                var employee = new ApplicationUser
+                {
+                    UserName = "employeepro",
+                    Email = "employeepro@gmail.com",
+                    LastName = "Employee",
+                    FirstName = "Pro",
+                    EmailConfirmed = true,
+                    PhoneNumber = "1234567890",
+                };
+                // Create admin with pwd
+                var result2 = await _userManager.CreateAsync(employee, "Employee123@");
+                if (result2.Succeeded)
+                {
+                    _logger.LogInformation("Employee user created successfully: {Email}", employee.Email);
+                    // Add role
+                    var roleResult = await _userManager.AddToRoleAsync(employee, "Employee");
+                    if (roleResult.Succeeded)
+                    {
+                        _logger.LogInformation("Employee user assigned to 'Employee' role successfully.");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to assign Employee role: {Errors}",
+                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    }
+                }
+                else
+                {
+                    // Log detailed reason why CreateAsync failed
+                    foreach (var error in result2.Errors)
+                    {
+                        _logger.LogError("User creation error: {Code} - {Description}", error.Code, error.Description);
+                    }
+                }
+            }
+        
 
   
     }
