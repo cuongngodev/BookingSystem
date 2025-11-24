@@ -98,6 +98,18 @@ namespace WebBookingSystem
                 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
                 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
                 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+                builder.Services.ConfigureApplicationCookie(options =>
+                {
+                    // Where to send users who aren’t logged in
+                    options.LoginPath = "/Auth/Login";
+
+                    // Where to send users who are logged in but lack the right role
+                    options.AccessDeniedPath = "/Auth/AccessDenied";
+
+                    // Optional session settings
+                    options.ExpireTimeSpan = TimeSpan.FromHours(1);
+                    options.SlidingExpiration = true;
+                });
 
 
 
