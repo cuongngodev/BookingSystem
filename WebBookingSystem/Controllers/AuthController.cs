@@ -63,7 +63,7 @@ namespace WebBookingSystem.Controllers
             if (userExists != null)
             {
                 _logger.LogWarning("Registration failed: User already exists with email {Email}", registerVM.Email);
-                ModelState.AddModelError("", "User already exists");
+                ModelState.AddModelError("Email", "This email is already registered.");
                 return View(registerVM);
             }
 
