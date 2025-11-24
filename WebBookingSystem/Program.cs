@@ -8,6 +8,7 @@ using System.Text;
 using WebBookingSystem.Data;
 using WebBookingSystem.Data.Intefaces;
 using WebBookingSystem.Data.Repositories;
+using WebBookingSystem.Services;
 
 namespace WebBookingSystem
 {
@@ -45,28 +46,35 @@ namespace WebBookingSystem
 
 
                 // JWT setup
-                var jwtKey = builder.Configuration["Jwt:Key"];
-                var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-                var jwtAudience = builder.Configuration["Jwt:Audience"];
+                var jwtSettings = builder.Configuration.GetSection("Jwt");
+                var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
                 builder.Services.AddAuthentication(options =>
                 {
+                    // Set the default scheme used for authentication
                     options.DefaultAuthenticateScheme = "JwtBearer";
                     options.DefaultChallengeScheme = "JwtBearer";
                 })
                 .AddJwtBearer("JwtBearer", options =>
                 {
+                    // Disable HTTPS requirement
+                    options.RequireHttpsMetadata = false;
+                    // Save the token in the AuthenticationProperties after a successful authorization
+                    options.SaveToken = true;
+
+                    // Configure how incoming JWTs should be validated
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtIssuer,
-                        ValidAudience = jwtAudience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
                     };
                 });
+
                 // Add services to the container.
                 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -77,6 +85,8 @@ namespace WebBookingSystem
                 builder.Services.AddControllersWithViews();
                 builder.Services.AddTransient<BookingSystemSeeder>();
 
+                //Register JwtService
+                builder.Services.AddScoped<JwtService>();
 
                 // Enable Identity with custom ApplicationUser and integer keys
                 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebBookingSystem.Data;
 using WebBookingSystem.Models;
+using WebBookingSystem.Services;
 
 namespace WebBookingSystem.Controllers
 {
@@ -93,23 +94,39 @@ namespace WebBookingSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginVM loginVM)
+        public async Task<IActionResult> Login([FromBody] LoginVM loginVM, [FromServices] JwtService jwtService)
         {
+            // Check if the incoming model is valid
             if (!ModelState.IsValid)
                 return View(loginVM);
 
+
+            // Find the user by email
             var user = await _userManager.FindByEmailAsync(loginVM.Email);
-            if (user != null)
+
+
+            // Check if user exists and password is correct
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginVM.Password))
             {
+                // Sign in the user via ASP.NET Identity cookie
                 var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, false);
+
+
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home");
+                    // Generate a JWT for client-side usage
+                    var token = jwtService.GenerateToken(user);
+
+                    // Return the token and expiration time as JSON
+                    return Ok(new
+                    {
+                        token,
+                        expiration = DateTime.UtcNow.AddMinutes(60)
+                    });
                 }
             }
-
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-            return View(loginVM);
+            // If login fails, return Unauthorized with a message
+            return Unauthorized(new { message = "Invalid login attempt." });
         }
 
         // GET: /Auth/Logout
@@ -133,5 +150,33 @@ namespace WebBookingSystem.Controllers
 
             return email;
         }
+
+        [HttpPost]
+        [Route("Auth/VerifyToken")]
+        public async Task<IActionResult> VerifyToken([FromBody] string token, [FromServices] JwtService jwtService)
+        {
+            // Return Unauthorized if no token is provided
+            if (string.IsNullOrEmpty(token))
+                return Unauthorized();
+
+
+            // Validate the JWT and get the user ID; returns null if invalid
+            var userId = jwtService.ValidateToken(token); 
+
+            if (userId == null)
+                return Unauthorized();
+
+            // Retrieve the user from the database
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return Unauthorized();
+
+            // Sign in via Identity cookies so the MVC views know the user is logged in
+            await _signInManager.SignInAsync(user, isPersistent: false);
+
+            // Return success response
+            return Ok(new { message = "Token valid", email = user.Email });
+        }
+
     }
 }
