@@ -113,43 +113,37 @@ namespace WebBookingSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginVM loginVM, [FromServices] JwtService jwtService)
         {
-            _logger.LogInformation("Login attempt for email: {Email}", loginVM.Email);
-
+            // Check if the incoming model is valid
             if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("Login failed: Invalid model state for email {Email}", loginVM.Email);
                 return View(loginVM);
-            }
 
+
+            // Find the user by email
             var user = await _userManager.FindByEmailAsync(loginVM.Email);
-            if (user== null) // check if exists
-             // not exists
-            {
-                ModelState.AddModelError(string.Empty, "No account found with this email.");
-                return View(loginVM);
-            }
-            // check if email is confirmed 
-            if (!user.EmailConfirmed)
-            {
-                ModelState.AddModelError(string.Empty, "Please verify your email before logging in.");
-                return View(loginVM);
-            }
 
-            // start the try to login
 
-            var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, lockoutOnFailure: false);
-
-            if (result.Succeeded)
+            // Check if user exists and password is correct
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginVM.Password))
             {
-                return RedirectToAction("Index", "Home");
-            }
-          
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Incorrect password. Please try again.");
-            }
+                // Sign in the user via ASP.NET Identity cookie
+                var result = await _signInManager.PasswordSignInAsync(user, loginVM.Password, loginVM.RememberMe, false);
 
-            return View(loginVM);
+
+                if (result.Succeeded)
+                {
+                    // Generate a JWT for client-side usage
+                    var token = jwtService.GenerateToken(user);
+
+                    // Return the token and expiration time as JSON
+                    return Ok(new
+                    {
+                        token,
+                        expiration = DateTime.UtcNow.AddMinutes(60)
+                    });
+                }
+            }
+            // If login fails, return Unauthorized with a message
+            return Unauthorized(new { message = "Invalid login attempt." });
         }
         #endregion
 
