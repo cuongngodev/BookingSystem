@@ -19,6 +19,10 @@ namespace WebBookingSystem.Data.Entities
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
+        // add Navigation attribute
+        [ForeignKey("ServiceId")]
+        public virtual Service? Service { get; set; }
+
     }
 
     public enum AppointmentStatus

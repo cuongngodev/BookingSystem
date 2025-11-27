@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using WebBookingSystem.Data;
 using WebBookingSystem.Data.Entities;
 using WebBookingSystem.Data.Intefaces;
+using System.Security.Claims;
 
 namespace WebBookingSystem.Controllers
 {
@@ -26,21 +28,42 @@ namespace WebBookingSystem.Controllers
         }
 
         #region GET: Appointments (Admin)
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin,Employee,Customer")] // allow all role to visit, but different data
         [HttpGet]
         public IActionResult Index()
         {
-            _logger.LogInformation("Fetching all appointments for admin.");
+            IEnumerable<Appointment> appointments;
 
-            var appointments = _unitOfWork.AppointmentRepository.GetAll();
-
+            if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+            {
+                // admin and employee can see all appointments
+                _logger.LogInformation("Fetching all appointments for admin.");
+                appointments = _unitOfWork.AppointmentRepository
+                    .GetAll()
+                    .Include(a => a.Service)
+                    //.Include(a => a.User)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .ToList();
+            }
+            else
+            {
+                // customer can only own appoinments
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                _logger.LogInformation($"Fetching appointments for customer {userId}.");
+                appointments = _unitOfWork.AppointmentRepository
+                    .GetAll()
+                    .Include(a => a.Service)
+                    .Where(a => a.UserId == userId)
+                    .OrderByDescending(a => a.AppointmentTime)
+                    .ToList();
+            }
             _logger.LogInformation("Returned {Count} appointments.", appointments.Count());
             return View(appointments);
-
         }
         #endregion
-        [Authorize(Roles = "Customer,Admin")]
+
         #region GET: Appointments/Details/{id}
+        [Authorize(Roles = "Customer,Admin")]
         public IActionResult Details(int? id)
         {
             _logger.LogInformation($"Fetching appointments details for ID: {id}");
@@ -51,8 +74,11 @@ namespace WebBookingSystem.Controllers
                 return BadRequest();
             }
 
-            var appointment = _unitOfWork.AppointmentRepository.GetById(id);
-            
+            var appointment = _unitOfWork.AppointmentRepository
+                .GetAll()
+                .Include(a => a.Service)
+                .FirstOrDefault(a => a.Id == id);
+
             if (appointment == null)
             {
                 _logger.LogWarning("Appointment with ID {Id} not found.", id);
@@ -66,11 +92,13 @@ namespace WebBookingSystem.Controllers
         [Authorize(Roles = "Customer,Admin")]
         public IActionResult Create(int serviceId)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);           
             _logger.LogInformation($"Opening create appointment page for service ID: {serviceId}");
+
             var appointment = new Appointment
             {
                 ServiceId = serviceId,
-                UserId = 1, // test user
+                UserId = int.Parse(userIdString), // actual user
                 Status = AppointmentStatus.Pending
             };
 
@@ -79,22 +107,24 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Appointments/Create
-        [HttpPost]  
+        [HttpPost]
+        [Authorize(Roles = "Customer,Admin")]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Appointment appointment)
         {
             _logger.LogInformation($"Attempting to create new appointment for user {appointment.UserId}.");
-            // only for testing
-            // after user class readt, it will use userId to make an appoinment
-            appointment.UserId = 1;
+
+            // actual userId to make an appoinment
+            appointment.UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             appointment.Status = AppointmentStatus.Pending;
             appointment.UpdatedAt = DateTime.Now;
+
+            _logger.LogInformation($"Attempting to create new appointment for user {appointment.UserId}.");
 
             if (ModelState.IsValid)
             {
                 _unitOfWork.AppointmentRepository.Add(appointment);
                 _unitOfWork.AppointmentRepository.SaveAll();
-
                 _logger.LogInformation($"Appointment successfully created with ID: {appointment.Id}.");
                 return RedirectToAction(nameof(Index));
             }
@@ -111,7 +141,10 @@ namespace WebBookingSystem.Controllers
         public IActionResult Edit(int id)
         {
             _logger.LogInformation($"Fetching appointment for update (ID: {id}).");
-            var appointment = _unitOfWork.AppointmentRepository.GetById(id);
+            var appointment = _unitOfWork.AppointmentRepository
+                .GetAll()
+                .Include(a => a.Service)
+                .FirstOrDefault(a => a.Id == id);
 
             if (appointment == null)
             {
@@ -143,10 +176,8 @@ namespace WebBookingSystem.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    appointment.UpdatedAt = DateTime.Now;
                     _unitOfWork.AppointmentRepository.Update(appointment);
                     _unitOfWork.AppointmentRepository.SaveAll();
-
                     _logger.LogInformation($"Appointment ID {id} updated successfully.");
                     return RedirectToAction(nameof(Index));
                 }
@@ -167,11 +198,14 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Appointments/Delete/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Customer")]
         public IActionResult Delete(int id)
         {
             _logger.LogInformation($"Opening delete confirmation for appointment ID {id}.");
-            var appointment = _unitOfWork.AppointmentRepository.GetById(id);
+            var appointment = _unitOfWork.AppointmentRepository
+                    .GetAll()
+                    .Include(a => a.Service)  
+                    .FirstOrDefault(a => a.Id == id); ;
             if (appointment == null)
             {
                 _logger.LogWarning($"Delete failed: Appointment with ID {id} not found.");
@@ -182,7 +216,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Appointments/Delete/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Customer")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -219,12 +253,14 @@ namespace WebBookingSystem.Controllers
         {
             // only for testing,
             // after user class readt, it will use userId to make an appoinment
-            int currentUserId = 1;
-            _logger.LogInformation($"Fetching appointments for user ID {currentUserId}.");
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            _logger.LogInformation($"Fetching appointments for user ID {userId}.");
 
-            var appointments = _unitOfWork.AppointmentRepository.GetAppointmentsByUser(currentUserId);
+            var appointments = _unitOfWork.AppointmentRepository
+                .GetAppointmentsByUser(userId)
+                .ToList(); 
 
-            _logger.LogInformation($"Returned {appointments.Count()} appointments for user ID {currentUserId}.");
+            _logger.LogInformation($"Returned {appointments.Count()} appointments for user ID {userId}.");
             return View(appointments);
         }
         #endregion

@@ -5,7 +5,6 @@ namespace WebBookingSystem.Data.Intefaces
     public interface IServiceRepository : IGenericRepository<Service>
     {
         Service? GetServiceByName(string name);
-        IEnumerable<Service> GetServicesUnderPrice(decimal maxPrice);
-        IEnumerable<Service> GetAllServices();
+        IQueryable<Service> GetServicesUnderPrice(decimal maxPrice);
     }
 }

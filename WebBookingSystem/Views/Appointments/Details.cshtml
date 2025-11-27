@@ -1,48 +1,65 @@
-﻿@model WebBookingSystem.Data.Entities.Appointment
-
+﻿@using WebBookingSystem.Data.Entities
+@model WebBookingSystem.Data.Entities.Appointment
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Appointment Details";
 }
 
-<h1>Details</h1>
+<h1>Appointment Details</h1>
 
 <div>
-    <h4>Appointment</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UserId)
+        <dt class="col-sm-3">Service</dt>
+        <dd class="col-sm-9">
+            @* Display service name *@
+            @Model.Service?.Name
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ServiceId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ServiceId)
+
+        <dt class="col-sm-3">Appointment Time</dt>
+        <dd class="col-sm-9">
+            @Model.AppointmentTime.ToString("dddd, MMMM dd, yyyy 'at' hh:mm tt")
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AppointmentTime)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AppointmentTime)
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge bg-@(Model.Status == AppointmentStatus.Pending ? "warning" :
+                                                     Model.Status == AppointmentStatus.Confirmed ? "success" :
+                                                     Model.Status == AppointmentStatus.Completed ? "info" : "danger")">
+                @Model.Status
+            </span>
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
+
+        <dt class="col-sm-3">Notes</dt>
+        <dd class="col-sm-9">
+            @(string.IsNullOrEmpty(Model.Notes) ? "No notes" : Model.Notes)
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Notes)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Notes)
-        </dd>
+
+        @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+        {
+            <dt class="col-sm-3">Customer ID</dt>
+            <dd class="col-sm-9">@Model.UserId</dd>
+        }
+
+        <dt class="col-sm-3">Created</dt>
+        <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
+
+        @if (Model.UpdatedAt.HasValue)
+        {
+            <dt class="col-sm-3">Last Updated</dt>
+            <dd class="col-sm-9">@Model.UpdatedAt.Value.ToString("g")</dd>
+        }
     </dl>
 </div>
+
 <div>
-    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-    <a class="btn btn-light" asp-action="Index">Back to List</a>  
+    @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Delete</a>
+    }
+    @if (User.IsInRole("Customer") && Model.Status == AppointmentStatus.Pending)
+    {
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Cancel</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

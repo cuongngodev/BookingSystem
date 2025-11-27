@@ -33,5 +33,173 @@
     "Duration": 60,
     "Price": 89.99,
     "Description": "Professional makeup for events, parties, or photoshoots."
+  },
+  {
+    "Id": 0,
+    "Name": "Beard Trim",
+    "Duration": 20,
+    "Price": 19.99,
+    "Description": "Precision beard trimming and shaping."
+  },
+  {
+    "Id": 0,
+    "Name": "Hair Spa Treatment",
+    "Duration": 45,
+    "Price": 69.99,
+    "Description": "Relaxing hair spa therapy with scalp massage."
+  },
+  {
+    "Id": 0,
+    "Name": "Waxing - Full Body",
+    "Duration": 60,
+    "Price": 89.99,
+    "Description": "Complete body waxing for smooth skin."
+  },
+  {
+    "Id": 0,
+    "Name": "Eyebrow Shaping",
+    "Duration": 15,
+    "Price": 14.99,
+    "Description": "Eyebrow shaping with threading or waxing."
+  },
+  {
+    "Id": 0,
+    "Name": "Bridal Makeup",
+    "Duration": 120,
+    "Price": 199.99,
+    "Description": "Full bridal makeup with consultation and trial."
+  },
+  {
+    "Id": 0,
+    "Name": "Massage Therapy",
+    "Duration": 60,
+    "Price": 79.99,
+    "Description": "Relaxing full-body massage with aromatic oils."
+  },
+  {
+    "Id": 0,
+    "Name": "Deep Tissue Massage",
+    "Duration": 75,
+    "Price": 99.99,
+    "Description": "Intensive massage to relieve muscle tension."
+  },
+  {
+    "Id": 0,
+    "Name": "Foot Reflexology",
+    "Duration": 30,
+    "Price": 39.99,
+    "Description": "Therapeutic foot massage to relieve stress."
+  },
+  {
+    "Id": 0,
+    "Name": "Anti-Aging Facial",
+    "Duration": 90,
+    "Price": 119.99,
+    "Description": "Advanced facial treatment for rejuvenation."
+  },
+  {
+    "Id": 0,
+    "Name": "Acne Treatment Facial",
+    "Duration": 75,
+    "Price": 89.99,
+    "Description": "Specialized treatment for acne-prone skin."
+  },
+  {
+    "Id": 0,
+    "Name": "Hair Extensions",
+    "Duration": 120,
+    "Price": 249.99,
+    "Description": "Premium hair extension installation."
+  },
+  {
+    "Id": 0,
+    "Name": "Keratin Treatment",
+    "Duration": 150,
+    "Price": 199.99,
+    "Description": "Keratin smoothing treatment for frizzy hair."
+  },
+  {
+    "Id": 0,
+    "Name": "Hot Stone Massage",
+    "Duration": 90,
+    "Price": 129.99,
+    "Description": "Relaxing massage using warm stones."
+  },
+  {
+    "Id": 0,
+    "Name": "Body Scrub",
+    "Duration": 45,
+    "Price": 59.99,
+    "Description": "Full-body exfoliation for glowing skin."
+  },
+  {
+    "Id": 0,
+    "Name": "Aromatherapy Session",
+    "Duration": 60,
+    "Price": 79.99,
+    "Description": "Holistic therapy using essential oils."
+  },
+  {
+    "Id": 0,
+    "Name": "Eyelash Extensions",
+    "Duration": 90,
+    "Price": 129.99,
+    "Description": "Classic or volume eyelash extension application."
+  },
+  {
+    "Id": 0,
+    "Name": "Spray Tanning",
+    "Duration": 20,
+    "Price": 34.99,
+    "Description": "Even spray tan for natural glow."
+  },
+  {
+    "Id": 0,
+    "Name": "Microdermabrasion",
+    "Duration": 60,
+    "Price": 149.99,
+    "Description": "Skin rejuvenation through gentle exfoliation."
+  },
+  {
+    "Id": 0,
+    "Name": "Laser Hair Removal",
+    "Duration": 45,
+    "Price": 149.99,
+    "Description": "Permanent hair reduction on selected areas."
+  },
+  {
+    "Id": 0,
+    "Name": "Bikini Wax",
+    "Duration": 30,
+    "Price": 39.99,
+    "Description": "Professional bikini-line waxing service."
+  },
+  {
+    "Id": 0,
+    "Name": "Full Makeup + Hairstyle",
+    "Duration": 90,
+    "Price": 129.99,
+    "Description": "Complete makeover with hair and makeup."
+  },
+  {
+    "Id": 0,
+    "Name": "Scalp Detox Treatment",
+    "Duration": 45,
+    "Price": 49.99,
+    "Description": "Deep cleansing treatment for the scalp."
+  },
+  {
+    "Id": 0,
+    "Name": "Hydrating Body Wrap",
+    "Duration": 75,
+    "Price": 109.99,
+    "Description": "Hydrating full-body wrap for nourishing the skin."
+  },
+  {
+    "Id": 0,
+    "Name": "Express Manicure",
+    "Duration": 30,
+    "Price": 24.99,
+    "Description": "Quick manicure service with polish."
   }
 ]
