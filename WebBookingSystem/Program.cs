@@ -125,7 +125,7 @@ namespace WebBookingSystem
 
                 var app = builder.Build();
 
-                RunSeeding(app);
+                await RunSeeding(app);
                 // Configure the HTTP request pipeline.
                 if (app.Environment.IsDevelopment())
                 {

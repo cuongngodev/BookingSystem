@@ -4,6 +4,7 @@ using System.Text.Json;
 using BookingSystem.Data.Entities;
 using WebBookingSystem.Data;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 namespace BookingSystem.Data
 {
     public class BookingSystemSeeder
@@ -64,43 +65,62 @@ namespace BookingSystem.Data
         {
             _logger.LogInformation("Seeding services...");
 
-            if (!_db.Services.Any())
-            {
-                try
-                { 
-                    //ContentRootPath is refering to the folders not related to wwwroot
-                    var file = Path.Combine(_hosting.ContentRootPath, "Data/service.json");
-                    _logger.LogInformation("Reading services from file: {FilePath}", file);
-                    var json = File.ReadAllText(file);
+            try
+            { 
+                //ContentRootPath is refering to the folders not related to wwwroot
+                var file = Path.Combine(_hosting.ContentRootPath, "Data/service.json");
+                _logger.LogInformation("Reading services from file: {FilePath}", file);
+                    
+                // Check file whether exist
+                if (!File.Exists(file))
+                {
+                    _logger.LogError("Service.json file not found at: {FilePath}", file);
+                    return;
+                }
 
-                    //Deserialise the json file into the List of Product class
-                    var services = JsonSerializer.Deserialize<IEnumerable<Service>>(json);
+                var json = File.ReadAllText(file);
 
-                    if (services != null && services.Any())
+                //Deserialise the json file into the List of Product class
+                var services = JsonSerializer.Deserialize<IEnumerable<Service>>(json);
+
+                if (services != null && services.Any())
+                {
+                    int addedCount = 0;
+
+                    foreach (var service in services)
                     {
-                        //Add the new list of products to the database
-                        _db.Services.AddRange(services);
-
-                        _db.SaveChanges();  //commit changes to the database (make permanent) 
+                        var exist = await _db.Services.AnyAsync(s => s.Name == service.Name);
+                        if (!exist){
+                            _db.Services.Add(service);
+                            _logger.LogInformation("Adding new service: {ServiceName}", service.Name);
+                            addedCount++;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Service already exists: {ServiceName}", service.Name);
+                        }
+                    }
+                    if (addedCount  > 0)
+                    {
+                        await _db.SaveChangesAsync();  //commit changes to the database (make permanent) 
                         _logger.LogInformation("Successfully added {Count} services to the database.", services.Count());
+
                     }
                     else
                     {
-                        _logger.LogWarning("No services were found in the JSON file.");
+                        _logger.LogInformation("No new services to add.");
                     }
-
                 }
-                catch (Exception ex)
+                else
                 {
+                    _logger.LogWarning("No services were found in the JSON file.");
+                }
+            }
+            catch (Exception ex)
+            {
                     _logger.LogError(ex, "Error while seeding services at {Time}", DateTime.Now);
                     throw;
-                }
-
-            }
-            else
-            {
-                _logger.LogInformation("Services already exist — skipping service seeding.");
-            }
+            } 
         }
         private async Task SeedRolesAsync()
         {
