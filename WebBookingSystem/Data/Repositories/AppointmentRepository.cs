@@ -11,12 +11,12 @@ namespace WebBookingSystem.Data.Repositories
             _logger = logger;
         }
         #region Get Appointments by User
-        public IEnumerable<Appointment> GetAppointmentsByUser(int userId)
+        public IQueryable<Appointment> GetAppointmentsByUser(int userId)
         {
             _logger.LogInformation("Fetching appointments for user ID {UserId}.", userId);
             try
             {
-                var appointments = _dbSet.Where(a => a.UserId == userId).ToList();
+                var appointments = _dbSet.Where(a => a.UserId == userId);
                 _logger.LogInformation("Appointments fetched successfully for user ID {UserId}.", userId);
                 return appointments;
             }
@@ -29,12 +29,12 @@ namespace WebBookingSystem.Data.Repositories
         #endregion
 
         #region Get Upcoming Appointments
-        public IEnumerable<Appointment> GetUpcomingAppointments()
+        public IQueryable<Appointment> GetUpcomingAppointments()
         {
             _logger.LogInformation("Fetching upcoming appointments.");
             try
             {
-                var appointments = _dbSet.Where(a => a.AppointmentTime > DateTime.Now).ToList();
+                var appointments = _dbSet.Where(a => a.AppointmentTime > DateTime.Now);
                 _logger.LogInformation("Upcoming appointments fetched successfully.");
                 return appointments;
             }
@@ -47,12 +47,12 @@ namespace WebBookingSystem.Data.Repositories
         #endregion
 
         #region Get Appointments by Status
-        public IEnumerable<Appointment> GetAppointmentsByStatus(AppointmentStatus status)
+        public IQueryable<Appointment> GetAppointmentsByStatus(AppointmentStatus status)
         {
             _logger.LogInformation("Fetching appointments with status {Status}.", status);
             try
             {
-                var appointments = _dbSet.Where(a => a.Status == status).ToList();
+                var appointments = _dbSet.Where(a => a.Status == status);
                 _logger.LogInformation("Appointments fetched successfully for status {Status}.", status);
                 return appointments;
             }

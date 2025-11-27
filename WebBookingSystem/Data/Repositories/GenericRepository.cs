@@ -20,10 +20,10 @@ namespace WebBookingSystem.Data.Repositories
         }
 
         // Get all records from the database
-        public IEnumerable<T> GetAll()
+        public IQueryable<T> GetAll()
         {
             _logger.LogInformation("Fetching all records of type {EntityType} at {Time}", typeof(T).Name, DateTime.Now);
-            return _dbSet.ToList();
+            return _dbSet;
         }
 
         // Get a single record by ID (supports int, string, Guid, etc.)

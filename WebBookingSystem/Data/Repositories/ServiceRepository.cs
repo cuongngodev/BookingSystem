@@ -11,11 +11,11 @@ namespace WebBookingSystem.Data.Repositories
             _logger = logger;
         }
 
-        public IEnumerable<Service> GetServicesUnderPrice(decimal maxPrice)
+        public IQueryable<Service> GetServicesUnderPrice(decimal maxPrice)
         {
             try
             {
-                return _dbSet.Where(s => s.Price < maxPrice).ToList();
+                return _dbSet.Where(s => s.Price < maxPrice);
             }
             catch (Exception ex)
             {
@@ -34,11 +34,6 @@ namespace WebBookingSystem.Data.Repositories
                 _logger.LogError(ex, "Error fetching service with name {ServiceName} at {Time}", name, DateTime.Now);
                 throw;
             }
-        }
-
-        public IEnumerable<Service> GetAllServices()
-        {
-            return _dbSet.ToList();
         }
     }
 }

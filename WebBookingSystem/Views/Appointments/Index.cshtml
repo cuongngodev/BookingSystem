@@ -1,59 +1,96 @@
-﻿@model IEnumerable<WebBookingSystem.Data.Entities.Appointment>
-
+﻿@using WebBookingSystem.Data.Entities
+@model IEnumerable<WebBookingSystem.Data.Entities.Appointment>
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = User.IsInRole("Customer") ? "My Appointments" : "All Appointments";
 }
 
-<h1>Index</h1>
+<h1>@ViewData["Title"]</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
+@if (User.IsInRole("Customer"))
+{
+    <p>
+        <a asp-controller="Services" asp-action="Index" class="btn btn-primary">
+            Book New Appointment
+        </a>
+    </p>
+}
+
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.UserId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ServiceId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.AppointmentTime)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notes)
-            </th>
-            <th></th>
+            @* Admin/Employee displays customer ID *@
+            @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+            {
+                <th>Customer ID</th>
+            }
+
+            @* Display service name instead of ServiceId *@
+            <th>Service</th>
+            <th>Appointment Time</th>
+            <th>Status</th>
+            <th>Notes</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserId)
+        @foreach (var item in Model)
+        {
+            <tr>
+                @* Admin/Employee can see customer ID *@
+                @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                {
+                    <td>User #@item.UserId</td>
+                }
+
+                @* Display service name *@
+                <td>@item.Service?.Name</td>
+
+                @* Format time display *@
+                <td>@item.AppointmentTime.ToString("yyyy-MM-dd hh:mm tt")</td>
+
+                @* Status badge *@
+                <td>
+                    <span class="badge bg-@(item.Status == AppointmentStatus.Pending ? "warning" :
+                                                                    item.Status == AppointmentStatus.Confirmed ? "success" :
+                                                                    item.Status == AppointmentStatus.Completed ? "info" : "danger")">
+                    @item.Status
+                </span>
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ServiceId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AppointmentTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+
+                @* Notes display *@
+                <td>@(string.IsNullOrEmpty(item.Notes) ? "-" : item.Notes)</td>
+
+                @* Action buttons *@
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+
+                @if (User.IsInRole("Admin") || User.IsInRole("Employee"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                    }
+
+                    @if (User.IsInRole("Customer") && item.Status == AppointmentStatus.Pending)
+                    {
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Cancel</a>
+                    }
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        @if (User.IsInRole("Customer"))
+        {
+            <p>You don't have any appointments yet.</p>
+            <a asp-controller="Services" asp-action="Index" class="btn btn-primary">Browse Services</a>
+        }
+        else
+        {
+            <p>No appointments found.</p>
+        }
+    </div>
+}

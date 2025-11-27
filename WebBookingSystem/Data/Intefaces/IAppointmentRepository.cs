@@ -4,8 +4,8 @@ namespace WebBookingSystem.Data.Intefaces
 {
     public interface IAppointmentRepository: IGenericRepository<Appointment>
     {
-        IEnumerable<Appointment> GetAppointmentsByUser(int userId);
-        IEnumerable<Appointment> GetUpcomingAppointments();
-        IEnumerable<Appointment> GetAppointmentsByStatus(AppointmentStatus status);
+        IQueryable<Appointment> GetAppointmentsByUser(int userId);
+        IQueryable<Appointment> GetUpcomingAppointments();
+        IQueryable<Appointment> GetAppointmentsByStatus(AppointmentStatus status);
     }
 }
