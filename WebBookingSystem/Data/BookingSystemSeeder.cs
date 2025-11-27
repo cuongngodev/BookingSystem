@@ -202,49 +202,44 @@ namespace BookingSystem.Data
         /// <returns></returns>
         private async Task SeedEmployeeUser()
         {
- 
+            /**
+                * Create User as Employee
+                */
 
-                /**
-                 * Create User as Employee
-                 */
-
-                var employee = new ApplicationUser
+            var employee = new ApplicationUser
+            {
+                UserName = "employeepro",
+                Email = "employeepro@gmail.com",
+                LastName = "Employee",
+                FirstName = "Pro",
+                EmailConfirmed = true,
+                PhoneNumber = "1234567890",
+            };
+            // Create admin with pwd
+            var result2 = await _userManager.CreateAsync(employee, "Employee123@");
+            if (result2.Succeeded)
+            {
+                _logger.LogInformation("Employee user created successfully: {Email}", employee.Email);
+                // Add role
+                var roleResult = await _userManager.AddToRoleAsync(employee, "Employee");
+                if (roleResult.Succeeded)
                 {
-                    UserName = "employeepro",
-                    Email = "employeepro@gmail.com",
-                    LastName = "Employee",
-                    FirstName = "Pro",
-                    EmailConfirmed = true,
-                    PhoneNumber = "1234567890",
-                };
-                // Create admin with pwd
-                var result2 = await _userManager.CreateAsync(employee, "Employee123@");
-                if (result2.Succeeded)
-                {
-                    _logger.LogInformation("Employee user created successfully: {Email}", employee.Email);
-                    // Add role
-                    var roleResult = await _userManager.AddToRoleAsync(employee, "Employee");
-                    if (roleResult.Succeeded)
-                    {
-                        _logger.LogInformation("Employee user assigned to 'Employee' role successfully.");
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to assign Employee role: {Errors}",
-                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
-                    }
+                    _logger.LogInformation("Employee user assigned to 'Employee' role successfully.");
                 }
                 else
                 {
-                    // Log detailed reason why CreateAsync failed
-                    foreach (var error in result2.Errors)
-                    {
-                        _logger.LogError("User creation error: {Code} - {Description}", error.Code, error.Description);
-                    }
+                    _logger.LogError("Failed to assign Employee role: {Errors}",
+                        string.Join(", ", roleResult.Errors.Select(e => e.Description)));
                 }
             }
-        
-
-  
+            else
+            {
+                // Log detailed reason why CreateAsync failed
+                foreach (var error in result2.Errors)
+                {
+                    _logger.LogError("User creation error: {Code} - {Description}", error.Code, error.Description);
+                }
+            }
+        }     
     }
 }

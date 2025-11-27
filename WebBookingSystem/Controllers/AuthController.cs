@@ -80,12 +80,22 @@ namespace WebBookingSystem.Controllers
                 SecurityStamp = Guid.NewGuid().ToString(),
             };
 
-            var result = await _userManager.CreateAsync(user, registerVM.Password);
+            var result = await _userManager.CreateAsync(user, registerVM.Password); // automaatic store in db
 
             if (result.Succeeded)
             {
-                _context.Update(user);
-                await _context.SaveChangesAsync();
+                // asign automaticll new user is customer role
+                var roleResult = await _userManager.AddToRoleAsync(user, "Customer");  // automaatic store in db
+
+                if (roleResult.Succeeded)
+                {
+                    _logger.LogInformation("User {Email} registered successfully and assigned Customer role.", user.Email);
+                }
+                else
+                {
+                    _logger.LogError("User {Email} registered but failed to assign Customer role: {Errors}",
+                     user.Email, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                }
 
                 return RedirectToAction("Login", "Auth");
             }
