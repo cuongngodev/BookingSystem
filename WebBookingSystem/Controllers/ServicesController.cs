@@ -19,9 +19,16 @@ namespace WebBookingSystem.Controllers
         #region  GET: Services
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string sortOrder)
         {
-            var services = _unitOfWork.ServiceRepository.GetAll();
+            // Keep current sorting info to toggle ASC/DESC links in the view
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["PriceSortParm"] = sortOrder == "price" ? "price_desc" : "price";
+            ViewData["DurationSortParm"] = sortOrder == "duration" ? "duration_desc" : "duration";
+
+            // Fetch sorted services from repository
+            var services = _unitOfWork.ServiceRepository.GetAll(sortOrder);
+
             return View(services);
         }
         #endregion
