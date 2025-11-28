@@ -2,6 +2,8 @@
 using BookingSystem.Data.Entities;
 using WebBookingSystem.Data.Intefaces;
 using Microsoft.AspNetCore.Authorization;
+using NuGet.Protocol.Core.Types;
+using WebBookingSystem.Models;
 
 namespace WebBookingSystem.Controllers
 {
@@ -19,10 +21,63 @@ namespace WebBookingSystem.Controllers
         #region  GET: Services
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(
+            string sortOrder,
+            string currentFilter,
+            string searchString,
+            int? pageNumber
+            )
         {
+            // Set ViewData for maintaining state in view
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["PriceSortParm"] = sortOrder == "Price" ? "price_desc" : "Price";
+            ViewData["DurationSortParm"] = sortOrder == "Duration" ? "duration_desc" : "Duration";
+
+            // Handle search string and page reset
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+            ViewData["CurrentFilter"] = searchString;
+
+            // Get IQueryable from repository
             var services = _unitOfWork.ServiceRepository.GetAll();
-            return View(services);
+
+            // Apply search filter
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                services = services.Where(s => s.Name.Contains(searchString)
+                                            || s.Description.Contains(searchString));
+            }
+            // Apply sorting
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    services = services.OrderByDescending(s => s.Name);
+                    break;
+                case "Price":
+                    services = services.OrderBy(s => s.Price);
+                    break;
+                case "price_desc":
+                    services = services.OrderByDescending(s => s.Price);
+                    break;
+                case "Duration":
+                    services = services.OrderBy(s => s.Duration);
+                    break;
+                case "duration_desc":
+                    services = services.OrderByDescending(s => s.Duration);
+                    break;
+                default:
+                    services = services.OrderBy(s => s.Name);
+                    break;
+            }
+            int pageSize = 10;
+            return View(await PaginatedList<Service>.CreateAsync(services, pageNumber ?? 1, pageSize));
         }
         #endregion
 
