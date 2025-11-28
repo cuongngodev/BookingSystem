@@ -45,8 +45,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
             const form = document.getElementById('loginForm');
-            const token = localStorage.getItem('jwt');
-            const expiration = localStorage.getItem('jwt_expiration');
+            let token = localStorage.getItem('jwt') || sessionStorage.getItem('jwt');
+            let expiration = localStorage.getItem('jwt_expiration') || sessionStorage.getItem('jwt_expiration');
 
             // Auto-login if token exists and is not expired
             if (token && expiration) {
@@ -69,16 +69,22 @@
                             // Token invalid → clear it
                             localStorage.removeItem('jwt');
                             localStorage.removeItem('jwt_expiration');
+                            sessionStorage.removeItem('jwt');
+                            sessionStorage.removeItem('jwt_expiration');
                         }
                     } catch (err) {
                         console.error(err);
                         localStorage.removeItem('jwt');
-                        localStorage.removeItem('jwt_expiration');
+                        localStorage.removeItem('jwt_expiration');  
+                        sessionStorage.removeItem('jwt');
+                        sessionStorage.removeItem('jwt_expiration');
                     }
                 } else {
                     // Token expired → remove it
                     localStorage.removeItem('jwt');
                     localStorage.removeItem('jwt_expiration');
+                    sessionStorage.removeItem('jwt');
+                    sessionStorage.removeItem('jwt_expiration');
                 }
             }
 
@@ -88,12 +94,13 @@
 
                 const email = document.getElementById('Email').value;
                 const password = document.getElementById('Password').value;
+                const rememberMe = document.getElementById('RememberMe').checked;
 
                 try {
                     const response = await fetch('/Auth/Login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
+                        body: JSON.stringify({ email, password, rememberMe })
                     });
 
                     if (!response.ok) {
@@ -105,8 +112,13 @@
                     const data = await response.json();
 
                     // Save token to localStorage
-                    localStorage.setItem('jwt', data.token);
-                    localStorage.setItem('jwt_expiration', data.expiration);
+                    if(rememberMe){
+                        localStorage.setItem('jwt', data.token);
+                        localStorage.setItem('jwt_expiration', data.expiration);
+                    }else{
+                        sessionStorage.setItem('jwt', data.token);
+                        sessionStorage.setItem('jwt_expiration', data.expiration);
+                    }
 
                     alert("Login successful! Token saved.");
                     window.location.href = '/Home/Index'; // redirect after login
