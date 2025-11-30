@@ -1,16 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using WebBookingSystem.Data;
 using WebBookingSystem.Data.Entities;
 using WebBookingSystem.Data.Intefaces;
-using System.Security.Claims;
+using WebBookingSystem.Services;
 
 namespace WebBookingSystem.Controllers
 {
@@ -20,11 +14,16 @@ namespace WebBookingSystem.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AppointmentsController> _logger;
+        private readonly AppointmentValidationService _appointmentValidationService;
 
-        public AppointmentsController(IUnitOfWork unitOfWork, ILogger<AppointmentsController> logger)
+        public AppointmentsController(
+            IUnitOfWork unitOfWork, 
+            ILogger<AppointmentsController> logger,
+            AppointmentValidationService appointmentValidationService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _appointmentValidationService = appointmentValidationService;
         }
 
         #region GET: Appointments (Admin)
@@ -63,7 +62,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Appointments/Details/{id}
-        [Authorize(Roles = "Customer,Admin")]
+        [Authorize(Roles = "Customer,Admin,Employee")]
         public IActionResult Details(int? id)
         {
             _logger.LogInformation($"Fetching appointments details for ID: {id}");
@@ -89,17 +88,35 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region GET: Appointments/Create (From Service)
-        [Authorize(Roles = "Customer,Admin")]
+        [Authorize(Roles = "Customer,Admin,Employee")]
         public IActionResult Create(int serviceId)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);           
             _logger.LogInformation($"Opening create appointment page for service ID: {serviceId}");
 
+            // Load service 
+            var service = _unitOfWork.ServiceRepository
+                .GetAll()
+                .FirstOrDefault(s => s.Id == serviceId);
+
+            if (service == null)
+            {
+                return NotFound("Service not found.");
+            }
+
+            // Pass service to the view
+            ViewBag.ServiceName = service.Name;
+            ViewBag.Duration = service.Duration;
+
+            // Set default appointment time (at least 1 day in advance)
+            var defaultTime = DateTime.Today.AddDays(1).AddHours(10);
+
             var appointment = new Appointment
             {
                 ServiceId = serviceId,
                 UserId = int.Parse(userIdString), // actual user
-                Status = AppointmentStatus.Pending
+                Status = AppointmentStatus.Pending,
+                AppointmentTime = defaultTime
             };
 
             return View(appointment);
@@ -108,7 +125,7 @@ namespace WebBookingSystem.Controllers
 
         #region POST: Appointments/Create
         [HttpPost]
-        [Authorize(Roles = "Customer,Admin")]
+        [Authorize(Roles = "Customer,Admin,Employee")]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Appointment appointment)
         {
@@ -192,13 +209,12 @@ namespace WebBookingSystem.Controllers
                 _logger.LogError(ex, "Error updating appointment ID {Id}.", id);
                 return View(appointment);
             }
-
                 
         }
         #endregion
 
         #region GET: Appointments/Delete/{id}
-        [Authorize(Roles = "Admin,Customer")]
+        [Authorize(Roles = "Admin,Customer,Employee")]
         public IActionResult Delete(int id)
         {
             _logger.LogInformation($"Opening delete confirmation for appointment ID {id}.");
@@ -216,7 +232,7 @@ namespace WebBookingSystem.Controllers
         #endregion
 
         #region POST: Appointments/Delete/{id}
-        [Authorize(Roles = "Admin,Customer")]
+        [Authorize(Roles = "Admin,Customer,Employee")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
@@ -247,21 +263,35 @@ namespace WebBookingSystem.Controllers
         }
         #endregion
 
-        #region  GET: User's Appointments
-        [Authorize]
-        public IActionResult MyAppointments()
+        #region API: Get Available Time Slots
+        [HttpGet]
+        [Authorize(Roles = "Customer,Admin,Employee")]
+        public IActionResult GetAvailableSlots(string date, int serviceId)
         {
-            // only for testing,
-            // after user class readt, it will use userId to make an appoinment
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            _logger.LogInformation($"Fetching appointments for user ID {userId}.");
+            _logger.LogInformation("API call: GetAvailableSlots for date {Date} and service {ServiceId}",
+                date, serviceId);
 
-            var appointments = _unitOfWork.AppointmentRepository
-                .GetAppointmentsByUser(userId)
-                .ToList(); 
+            // Parse the date
+            if (!DateTime.TryParse(date, out DateTime selectedDate))
+            {
+                _logger.LogWarning("Invalid date format: {Date}", date);
+                return BadRequest(new { error = "Invalid date format" });
+            }
 
-            _logger.LogInformation($"Returned {appointments.Count()} appointments for user ID {userId}.");
-            return View(appointments);
+            // Get available slots from validation service
+            var availableSlots = _appointmentValidationService.GetAvailableTimeSlots(selectedDate, serviceId);
+
+            // Format slots for frontend
+            var formattedSlots = availableSlots.Select(slot => new
+            {
+                datetime = slot.ToString("yyyy-MM-ddTHH:mm"),  // For input value
+                display = slot.ToString("h:mm tt"),            // For display (9:00 AM)
+                displayLong = slot.ToString("dddd, MMMM dd 'at' h:mm tt")  // Full display
+            }).ToList();
+
+            _logger.LogInformation("Returning {Count} available slots", formattedSlots.Count);
+
+            return Json(formattedSlots);
         }
         #endregion
     }

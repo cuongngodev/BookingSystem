@@ -108,6 +108,7 @@ namespace WebBookingSystem
                 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
                 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
                 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+                builder.Services.AddScoped<AppointmentValidationService>();
                 builder.Services.ConfigureApplicationCookie(options =>
                 {
                     // Where to send users who aren’t logged in

@@ -1,64 +1,168 @@
 ﻿@model WebBookingSystem.Data.Entities.Appointment
-
 @{
     ViewData["Title"] = "Book Appointment";
 }
 
 <h1>Book Appointment</h1>
 
-<h4>Appointment</h4>
+
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <!-- Hidden values -->
+    <div class="col-md-8">
+        <form asp-action="Create" method="post" id="bookingForm">
+            @* Hidden values *@
             <input type="hidden" asp-for="UserId" />
-            <input type="hidden" asp-for="ServiceId" />
+            <input type="hidden" asp-for="ServiceId" id="serviceId" />
             <input type="hidden" asp-for="Status" />
+            <input type="hidden" asp-for="AppointmentTime" id="selectedAppointmentTime" />
 
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            @* <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div> *@
-            @* <div class="form-group">
-                <label asp-for="ServiceId" class="control-label"></label>
-                <input asp-for="ServiceId" class="form-control" />
-                <span asp-validation-for="ServiceId" class="text-danger"></span>
-            </div> *@
-
-            <!-- Appointment time -->
-            <div class="form-group">
-                <label asp-for="AppointmentTime" class="control-label"></label>
-                <input asp-for="AppointmentTime" class="form-control" />
-                <span asp-validation-for="AppointmentTime" class="text-danger"></span>
-            </div>
-            @* <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div> *@
-
-            <!-- Notes -->
-            <div class="form-group">
-                <label asp-for="Notes" class="control-label"></label>
-                <input asp-for="Notes" class="form-control" />
-                <span asp-validation-for="Notes" class="text-danger"></span>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+      
+             @* Step 1: Select Date *@
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Step 1: Select Date</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="dateInput" class="control-label"></label>
+                        <input type="date"
+                                id="dateInput" 
+                                class="form-control"
+                                min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                max="@DateTime.Today.AddMonths(3).ToString("yyyy-MM-dd")" />
+                        <small class="form-text text-muted">
+                            We are open Monday through Saturday, 9:00 AM - 6:00 PM
+                        </small>
+                    </div>
+                </div>
             </div>
 
-            <!-- Buttons -->
+
+            @* Step 2: Select Time Slot *@
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Step 2: Select Time</h5>
+                </div>
+                <div class="card-body">
+                    <div id="timeSlotsContainer">
+                        <p class="text-muted">
+                            <i class="bi bi-info-circle"></i> Please select a date first to see available time slots
+                        </p>
+                    </div>
+                    <div id="loadingSpinner" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading available times...</p>
+                    </div>
+                </div>
+            </div>
+
+            @* Step 3: Add Notes (Optional) *@
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Step 3: Additional Notes (Optional)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label asp-for="Notes" class="control-label">Special requests or notes</label>
+                        <textarea asp-for="Notes"
+                                  class="form-control"
+                                  rows="3"
+                                  placeholder="Any special requests or preferences..."></textarea>
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            @*  Buttons *@
             <div class="mt-3">
-                <button type="submit" class="btn btn-primary me-2" >Create</button>
-                <a asp-controller="Services" asp-action="Index" class="btn btn-secondary">
-                    Back to Services
+                <button type="submit"
+                        id="submitBtn"
+                        class="btn btn-primary btn-lg"
+                        disabled>
+                    <i class="bi bi-calendar-check"></i>Create Booking
+                </button>
+                <a asp-controller="Services" asp-action="Index" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-arrow-left"></i> Back to Services
                 </a>
             </div>
         </form>
+    </div>
+    @* Booking Summary Sidebar *@
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Booking Summary</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Service:</dt>
+                    <dd class="col-sm-8" id="summaryService">@ViewBag.ServiceName</dd>
+
+                    <dt class="col-sm-4">Date:</dt>
+                    <dd class="col-sm-8" id="summaryDate">Not selected</dd>
+
+                    <dt class="col-sm-4">Time:</dt>
+                    <dd class="col-sm-8" id="summaryTime">Not selected</dd>
+
+                    <dt class="col-sm-4">Duration:</dt>
+                    <dd class="col-sm-8" id="summaryDuration">@ViewBag.Duration minutes</dd>
+                </dl>
+            </div>
+        </div>
     </div>
 </div>
 
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Read the selected service ID from hidden input
+        const serviceId = document.getElementById('serviceId').value;
+
+        // When user selects a date: update summary & load slots
+        document.getElementById('dateInput').addEventListener('change', function () {
+            document.getElementById('summaryDate').textContent = this.value; // ★ only new line
+            loadSlots(this.value);
+        });
+
+        // Load available time slots from server
+        function loadSlots(date) {
+            document.getElementById('timeSlotsContainer').innerHTML = '<p>Loading...</p>';
+
+            fetch(`/Appointments/GetAvailableSlots?date=${date}&serviceId=${serviceId}`)
+                .then(res => res.json())
+                .then(slots => showSlots(slots));
+        }
+
+        // Display time slot buttons
+        function showSlots(slots) {
+            let html = '';
+
+            if (slots.length === 0) {
+                html = '<p class="text-warning">No available time slots</p>';
+            } else {
+                slots.forEach(slot => {
+                    html += `<button type="button" class="btn btn-outline-primary m-1"
+                                     onclick="selectSlot('${slot.datetime}', '${slot.display}')">
+                                ${slot.display}
+                             </button>`;
+                });
+            }
+
+            document.getElementById('timeSlotsContainer').innerHTML = html;
+        }
+
+        // User selects a time
+        function selectSlot(datetime, display) {
+            document.getElementById('selectedAppointmentTime').value = datetime;
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('summaryTime').textContent = display; // time summary
+        }
+    </script>
 }
