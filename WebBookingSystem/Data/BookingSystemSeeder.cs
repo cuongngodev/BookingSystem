@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using BookingSystem.Data.Entities;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using System.Text.Json;
-using BookingSystem.Data.Entities;
-using WebBookingSystem.Data;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Threading.Tasks;
+using WebBookingSystem.Data;
+using WebBookingSystem.Data.Entities;
 namespace BookingSystem.Data
 {
     public class BookingSystemSeeder
@@ -51,6 +52,12 @@ namespace BookingSystem.Data
 
                 // Create employee user
                 await SeedEmployeeUser();
+
+                //Create customer user
+                await SeedCustomerUsersAsync();
+
+                //Create Appoitnment
+                await SeedAppointmentsAsync();
 
 
                 _logger.LogInformation("Database seeding completed successfully at {Time}", DateTime.Now);
@@ -240,6 +247,141 @@ namespace BookingSystem.Data
                     _logger.LogError("User creation error: {Code} - {Description}", error.Code, error.Description);
                 }
             }
-        }     
+        }
+
+        //Seed customer using teh users.json file
+        private async Task SeedCustomerUsersAsync()
+        {
+            _logger.LogInformation("Seeding customer users...");
+
+            try
+            {
+                var file = Path.Combine(_hosting.ContentRootPath, "Data/users.json");
+
+                if (!File.Exists(file))
+                {
+                    _logger.LogWarning("users.json not found at {Path}", file);
+                    return;
+                }
+
+                var json = File.ReadAllText(file);
+                var customers = JsonSerializer.Deserialize<IEnumerable<ApplicationUser>>(json);
+
+                if (customers == null || !customers.Any())
+                {
+                    _logger.LogWarning("No customers found in users.json");
+                    return;
+                }
+
+                foreach (var user in customers)
+                {
+                    var exists = await _userManager.FindByEmailAsync(user.Email);
+                    if (exists != null)
+                    {
+                        _logger.LogInformation("Customer already exists: {Email}", user.Email);
+                        continue;
+                    }
+
+                    // Create customer with password
+                    var result = await _userManager.CreateAsync(user, "Customer123@");
+
+                    if (result.Succeeded)
+                    {
+                        _logger.LogInformation("Customer created: {Email}", user.Email);
+
+                        await _userManager.AddToRoleAsync(user, "Customer");
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            _logger.LogError("Customer user creation error: {Code} - {Description}",
+                                error.Code, error.Description);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error seeding customers");
+                throw;
+            }
+        }
+        //Seed appointmnets using appointment.json
+        private async Task SeedAppointmentsAsync()
+        {
+            _logger.LogInformation("Seeding appointments...");
+
+            try
+            {
+                var file = Path.Combine(_hosting.ContentRootPath, "Data/appointments.json");
+
+                if (!File.Exists(file))
+                {
+                    _logger.LogWarning("appointments.json not found at {Path}", file);
+                    return;
+                }
+
+                var json = File.ReadAllText(file);
+                var appointments = JsonSerializer.Deserialize<IEnumerable<Appointment>>(json);
+
+                if (appointments == null || !appointments.Any())
+                {
+                    _logger.LogWarning("No appointments found in appointments.json");
+                    return;
+                }
+
+                int added = 0;
+
+                foreach (var appt in appointments)
+                {
+                    bool exists = await _db.Appointments.AnyAsync(a =>
+                        a.UserId == appt.UserId &&
+                        a.ServiceId == appt.ServiceId &&
+                        a.AppointmentTime == appt.AppointmentTime
+                    );
+
+                    if (exists)
+                    {
+                        continue; // skip duplicates
+                    }
+
+                    // Ensure User exists
+                    var user = await _userManager.FindByIdAsync(appt.UserId.ToString());
+                    if (user == null)
+                    {
+                        _logger.LogWarning("Skipping appointment — user not found: {UserId}", appt.UserId);
+                        continue;
+                    }
+
+                    // Ensure Service exists
+                    var serviceExists = await _db.Services.AnyAsync(s => s.Id == appt.ServiceId);
+                    if (!serviceExists)
+                    {
+                        _logger.LogWarning("Skipping appointment — service not found: {ServiceId}", appt.ServiceId);
+                        continue;
+                    }
+
+                    _db.Appointments.Add(appt);
+                    added++;
+                }
+
+                if (added > 0)
+                {
+                    await _db.SaveChangesAsync();
+                    _logger.LogInformation("Added {Count} appointments.", added);
+                }
+                else
+                {
+                    _logger.LogInformation("No new appointments to add.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error seeding appointments");
+                throw;
+            }
+        }
+
     }
 }

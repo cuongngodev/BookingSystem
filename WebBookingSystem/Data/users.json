@@ -1,0 +1,82 @@
+﻿[
+  {
+    "UserName": "sarah.m",
+    "Email": "sarah.m@gmail.com",
+    "FirstName": "Sarah",
+    "LastName": "Martinez",
+    "PhoneNumber": "5141230001",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "john.d",
+    "Email": "john.d@gmail.com",
+    "FirstName": "John",
+    "LastName": "Doe",
+    "PhoneNumber": "5141230002",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "amelia.r",
+    "Email": "amelia.r@gmail.com",
+    "FirstName": "Amelia",
+    "LastName": "Roche",
+    "PhoneNumber": "5141230003",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "kevin.l",
+    "Email": "kevin.l@gmail.com",
+    "FirstName": "Kevin",
+    "LastName": "Lambert",
+    "PhoneNumber": "5141230004",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "isabelle.p",
+    "Email": "isabelle.p@gmail.com",
+    "FirstName": "Isabelle",
+    "LastName": "Perron",
+    "PhoneNumber": "5141230005",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "mohamed.k",
+    "Email": "mohamed.k@gmail.com",
+    "FirstName": "Mohamed",
+    "LastName": "Karim",
+    "PhoneNumber": "5141230006",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "laura.t",
+    "Email": "laura.t@gmail.com",
+    "FirstName": "Laura",
+    "LastName": "Thibault",
+    "PhoneNumber": "5141230007",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "patrick.b",
+    "Email": "patrick.b@gmail.com",
+    "FirstName": "Patrick",
+    "LastName": "Bouchard",
+    "PhoneNumber": "5141230008",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "anna.v",
+    "Email": "anna.v@gmail.com",
+    "FirstName": "Anna",
+    "LastName": "Vargas",
+    "PhoneNumber": "5141230009",
+    "EmailConfirmed": true
+  },
+  {
+    "UserName": "jessica.c",
+    "Email": "jessica.c@gmail.com",
+    "FirstName": "Jessica",
+    "LastName": "Chan",
+    "PhoneNumber": "5141230010",
+    "EmailConfirmed": true
+  }
+]
