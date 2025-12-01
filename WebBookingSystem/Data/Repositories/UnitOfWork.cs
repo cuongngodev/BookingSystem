@@ -8,6 +8,7 @@ namespace WebBookingSystem.Data.Repositories
         private readonly ApplicationDbContext _context;
         private ServiceRepository _serviceRepository;
         private AppointmentRepository _appointmentRepository;
+        private UserRepository _userRepository;
         private bool disposedValue;
         private readonly ILoggerFactory _logger;
 
@@ -42,6 +43,18 @@ namespace WebBookingSystem.Data.Repositories
                 return _appointmentRepository;
             }
 
+        }
+        public UserRepository UserRepository
+        {
+            get
+            {
+                if (_userRepository == null)
+                {
+                    var logger = _logger.CreateLogger<UserRepository>();
+                    _userRepository = new(_context, logger);
+                }
+                return _userRepository;
+            }
         }
 
         // Save all changes in one go
