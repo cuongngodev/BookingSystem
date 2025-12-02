@@ -38,11 +38,10 @@ namespace WebBookingSystem.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DateJoined")
-                        .IsRequired()
-                        .HasMaxLength(100)
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -272,6 +271,9 @@ namespace WebBookingSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    //b.Property<int?>("ApplicationUserId")
+                    //    .HasColumnType("int");
+
                     b.Property<DateTime>("AppointmentTime")
                         .HasColumnType("datetime2");
 
@@ -294,6 +296,8 @@ namespace WebBookingSystem.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("ServiceId");
 
@@ -353,6 +357,10 @@ namespace WebBookingSystem.Migrations
 
             modelBuilder.Entity("WebBookingSystem.Data.Entities.Appointment", b =>
                 {
+                    b.HasOne("BookingSystem.Data.Entities.ApplicationUser", null)
+                        .WithMany("Appointments")
+                        .HasForeignKey("ApplicationUserId");
+
                     b.HasOne("BookingSystem.Data.Entities.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
@@ -360,6 +368,11 @@ namespace WebBookingSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("BookingSystem.Data.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }

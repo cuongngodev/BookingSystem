@@ -5,7 +5,7 @@
 namespace WebBookingSystem.Migrations
 {
     /// <inheritdoc />
-    public partial class AddApplicationUserFields : Migration
+    public partial class initialcheck : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
