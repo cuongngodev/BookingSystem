@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AspNetCoreGeneratedDocument;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebBookingSystem.Data.Entities;
 using WebBookingSystem.Data.Intefaces;
+using WebBookingSystem.Models;
 using WebBookingSystem.Services;
 
 namespace WebBookingSystem.Controllers
@@ -49,6 +51,7 @@ namespace WebBookingSystem.Controllers
             var events = _unitOfWork.AppointmentRepository
                     .GetAll()
                     .Include(a => a.Service)
+                    .Include(a => a.Client) 
                     .AsNoTracking()
                     .Select(a => new
                     {
@@ -58,6 +61,11 @@ namespace WebBookingSystem.Controllers
                         end = a.Service != null ? a.AppointmentTime.AddMinutes(a.Service.Duration) : a.AppointmentTime,
                         notes = a.Notes,
                         status = a.Status.ToString(),
+                        userName = a.Client != null ? a.Client.FirstName + a.Client.LastName : "N/A", 
+                        userPhone = a.Client != null ? a.Client.PhoneNumber : "N/A",
+                        serviceId = a.ServiceId,
+                        serviceName = a.Service.Name,
+                        email = a.Client !=null ? a.Client.Email : "N/A",
                         allDay = false
                     })
                     .ToList();
@@ -78,7 +86,7 @@ namespace WebBookingSystem.Controllers
         [Authorize(Roles = "Admin,Employee")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult EditFromCalendar(Appointment model)
+        public IActionResult EditFromCalendar(AppointmentEditVM model)
         {
             var appointment = _unitOfWork.AppointmentRepository.GetById(model.Id);
             if (appointment == null)
@@ -87,24 +95,30 @@ namespace WebBookingSystem.Controllers
             }
             try
             {
-                _logger.LogInformation("Attempting to update appointment ID {Id}.", model.Id);
-                // only admin can change status
-                // user cannot change serviceId or userId
+                if (DateTime.TryParse(model.SelectedAppointmentDateTime, out DateTime parsedDateTime))
+                {
+                    // Keep it as local time
+                    appointment.AppointmentTime = DateTime.SpecifyKind(parsedDateTime, DateTimeKind.Local);
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid datetime input: {Date}", model.SelectedAppointmentDateTime);
+                }
 
-                // Update fields
-                appointment.AppointmentTime = model.AppointmentTime;
                 appointment.Notes = model.Notes;
                 appointment.Status = model.Status;
-                appointment.UpdatedAt = DateTime.Now;
+                appointment.UpdatedAt = DateTime.UtcNow;
 
+                _unitOfWork.AppointmentRepository.Update(appointment);
                 _unitOfWork.AppointmentRepository.SaveAll();
 
+                _logger.LogInformation("Appointment {Id} updated successfully by Admin", model.Id);
                 return RedirectToAction("Manage");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating appointment ID {Id}.", model.Id);
-                return View(appointment);
+                return RedirectToAction("Manage");
             }
 
         }
