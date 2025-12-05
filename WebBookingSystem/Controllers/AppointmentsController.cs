@@ -29,19 +29,20 @@ namespace WebBookingSystem.Controllers
         }
         /// <summary>
         /// Returns a calender view of appointments, another interface for admin to manage and perform different action to appointments.
+        ///  Dscription:
+        /// - This method returns the calendar view for the admin dashboard.
+        /// - The view contains a FullCalendar JS component that loads
+        ///  all appointments dynamically from GetEvents() below.
         /// </summary>
-       
+
         public IActionResult Manage()
         {
             return View(); 
         }
         /// <summary>
         /// Retrieves a list of appointment events with associated service information for use in calendar or scheduling
-        /// interfaces.
+        /// interfaces, including start time, title, notes, and extended properties like user name, phone, email.
         /// </summary>
-        /// <remarks>Each event object includes the appointment ID, service name, start and end times, and
-        /// an indicator that the event is not all-day. This endpoint event data is used for calender view. The returned data is read-only and does not
-        /// include sensitive information.</remarks>
         /// <returns>A JSON result containing a collection of event objects, each with appointment and service details. The
         /// collection will be empty if no appointments are found.</returns>
         [HttpGet]
@@ -74,16 +75,15 @@ namespace WebBookingSystem.Controllers
         }
 
         /// <summary>
-        /// Processes an appointment update request submitted from the calendar interface.
+        /// Processes an appointment update request submitted from the calendar interface. Triggered when the admin clicks "Save Changes" in the modal
+        /// This receives the form data, parses the selected date/time, and updates the appointment record in the database.
         /// </summary>
         /// <remarks>This action requires the user to have either the Admin or Employee role. Only
-        /// administrators can change the appointment status. The service and user associated with the appointment
+        /// administrators can change the appointment status. The service, and employee and user associated with the appointment
         /// cannot be modified through this method.</remarks>
-        /// <param name="model">An <see cref="Appointment"/> object containing the updated appointment details. The <c>Id</c> property must
-        /// correspond to an existing appointment.</param>
-        /// <returns>A JSON result indicating success if the update is completed; otherwise, a view displaying the appointment if
-        /// an error occurs, or a NotFound result if the appointment does not exist.</returns>
-        [Authorize(Roles = "Admin,Employee")]
+        /// <param name="model">An <see cref="AppointmentEditVM"/> Use the model AppointmentEditVM.
+ 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditFromCalendar(AppointmentEditVM model)
@@ -95,6 +95,8 @@ namespace WebBookingSystem.Controllers
             }
             try
             {
+                _logger.LogInformation("Updating appointment ID {Id}.", model.Id);
+                // Convert date string from form (ISO format) to datetime.
                 if (DateTime.TryParse(model.SelectedAppointmentDateTime, out DateTime parsedDateTime))
                 {
                     // Keep it as local time
@@ -105,10 +107,12 @@ namespace WebBookingSystem.Controllers
                     _logger.LogWarning("Invalid datetime input: {Date}", model.SelectedAppointmentDateTime);
                 }
 
+                // Update other fields
                 appointment.Notes = model.Notes;
                 appointment.Status = model.Status;
                 appointment.UpdatedAt = DateTime.UtcNow;
 
+                // save the chages
                 _unitOfWork.AppointmentRepository.Update(appointment);
                 _unitOfWork.AppointmentRepository.SaveAll();
 
