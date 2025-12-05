@@ -25,6 +25,87 @@ namespace WebBookingSystem.Controllers
             _logger = logger;
             _appointmentValidationService = appointmentValidationService;
         }
+        /// <summary>
+        /// Returns a calender view of appointments, another interface for admin to manage and perform different action to appointments.
+        /// </summary>
+       
+        public IActionResult Manage()
+        {
+            return View(); 
+        }
+        /// <summary>
+        /// Retrieves a list of appointment events with associated service information for use in calendar or scheduling
+        /// interfaces.
+        /// </summary>
+        /// <remarks>Each event object includes the appointment ID, service name, start and end times, and
+        /// an indicator that the event is not all-day. This endpoint event data is used for calender view. The returned data is read-only and does not
+        /// include sensitive information.</remarks>
+        /// <returns>A JSON result containing a collection of event objects, each with appointment and service details. The
+        /// collection will be empty if no appointments are found.</returns>
+        [HttpGet]
+        public IActionResult GetEvents()
+        {
+            // Return strongly-typed DateTime values and avoid formatting inside the EF projection.
+            var events = _unitOfWork.AppointmentRepository
+                    .GetAll()
+                    .Include(a => a.Service)
+                    .AsNoTracking()
+                    .Select(a => new
+                    {
+                        id = a.Id,
+                        title = a.Service != null ? a.Service.Name : "Unknown",
+                        start = a.AppointmentTime,
+                        end = a.Service != null ? a.AppointmentTime.AddMinutes(a.Service.Duration) : a.AppointmentTime,
+                        allDay = false
+                    })
+                    .ToList();
+
+            return Json(events);
+        }
+
+        /// <summary>
+        /// Processes an appointment update request submitted from the calendar interface.
+        /// </summary>
+        /// <remarks>This action requires the user to have either the Admin or Employee role. Only
+        /// administrators can change the appointment status. The service and user associated with the appointment
+        /// cannot be modified through this method.</remarks>
+        /// <param name="model">An <see cref="Appointment"/> object containing the updated appointment details. The <c>Id</c> property must
+        /// correspond to an existing appointment.</param>
+        /// <returns>A JSON result indicating success if the update is completed; otherwise, a view displaying the appointment if
+        /// an error occurs, or a NotFound result if the appointment does not exist.</returns>
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditFromCalendar(Appointment model)
+        {
+            var appointment = _unitOfWork.AppointmentRepository.GetById(model.Id);
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+            try
+            {
+                _logger.LogInformation("Attempting to update appointment ID {Id}.", model.Id);
+                // only admin can change status
+                // user cannot change serviceId or userId
+
+                // Update fields
+                appointment.AppointmentTime = model.AppointmentTime;
+                appointment.Notes = model.Notes;
+                appointment.Status = model.Status;
+                appointment.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.AppointmentRepository.SaveAll();
+
+                return RedirectToAction("Manage");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating appointment ID {Id}.", model.Id);
+                return View(appointment);
+            }
+
+        }
 
         #region GET: Appointments (Admin)
         [Authorize(Roles = "Admin,Employee,Customer")] // allow all role to visit, but different data
