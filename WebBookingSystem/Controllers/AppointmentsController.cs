@@ -56,6 +56,8 @@ namespace WebBookingSystem.Controllers
                         title = a.Service != null ? a.Service.Name : "Unknown",
                         start = a.AppointmentTime,
                         end = a.Service != null ? a.AppointmentTime.AddMinutes(a.Service.Duration) : a.AppointmentTime,
+                        notes = a.Notes,
+                        status = a.Status.ToString(),
                         allDay = false
                     })
                     .ToList();
