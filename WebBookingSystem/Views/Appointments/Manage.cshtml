@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Calendar";
+    Layout = "_Layout";
+}
+
+
+<div class="container mt-3">
+    <h2>Bookings Calendar</h2>
+    @* container calender *@
+    <div id="calendar"></div>
+    <!-- Edit Appointment Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editForm" method="post" action="/Appointments/EditFromCalendar">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="eventId" name="Id" />
+
+                    <div class="mb-3">
+                        <label for="appointmentTime" class="form-label">Start Time</label>
+                        <input type="datetime-local" class="form-control" id="appointmentTime" name="AppointmentTime" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="Notes"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-control" id="status" name="Status">
+                            <option value="Pending">Pending</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        function formatDateForInput(date) {
+            if (!date) return '';
+            const pad = (n) => n.toString().padStart(2, '0');
+            return date.getFullYear() + '-' +
+                   pad(date.getMonth() + 1) + '-' +
+                   pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' +
+                   pad(date.getMinutes());
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek', // or 'dayGridMonth'
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                },
+                locale: 'fr',
+                events: '/Appointments/GetEvents',
+                // Event Click Handler
+                // Run when a user clicks an appointment event
+                eventClick: function(info) {
+                        document.getElementById('eventId').value = info.event.id;
+                        document.getElementById('appointmentTime').value = formatDateForInput(info.event.start);
+                        document.getElementById('notes').value = info.event.extendedProps.notes || '';
+                        document.getElementById('status').value = info.event.extendedProps.status || 'Pending';
+
+                    
+
+                        var modal = new bootstrap.Modal(document.getElementById('editModal'));
+                        modal.show();
+                    }
+
+            });
+
+
+            calendar.render();
+        });
+    </script>
+
+</div>
+
+<!-- Read-only calendar script -->
+
