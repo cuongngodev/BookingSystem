@@ -22,6 +22,8 @@ namespace WebBookingSystem.Data.Entities
         // add Navigation attribute
         [ForeignKey("ServiceId")]
         public virtual Service? Service { get; set; }
+        [ForeignKey("UserId")]
+        public virtual ApplicationUser? Client{ get; set; }
 
     }
 
