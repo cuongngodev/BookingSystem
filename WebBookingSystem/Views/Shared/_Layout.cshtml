@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+
     <!-- FullCalendar Core -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
 
@@ -17,12 +18,7 @@
     <link rel="stylesheet" href="~/WebBookingSystem.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 
-    <!-- FullCalendar Core JS -->
-    @* <script src="~/lib/fullcalendar/core/index.global.min.js"></script> *@
-
-    <!-- Optional: Locales -->
-    @* <script src="~/lib/fullcalendar/locales-all.global.min.js"></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script> *@
+   
 
 
 </head>
@@ -47,7 +43,7 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Services" asp-action="Index">Service</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Calendar" asp-action="Index">Calendar</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Appointments" asp-action="Manage">Manage </a>
                         </li>
                         @if(User.IsInRole("Admin") || User.IsInRole("Employee"))
                         {
