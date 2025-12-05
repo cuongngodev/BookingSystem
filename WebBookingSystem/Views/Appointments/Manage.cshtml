@@ -6,19 +6,57 @@
 @* This is a calender view is for admin where he can take action on current appointments such as modify, update *@
 <div class="container mt-3">
     <h2>Bookings Calendar</h2>
-    @* container calender *@
+    @* Full container calender *@
     <div id="calendar"></div>
     <!-- Edit Appointment Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
+                @* Form to submit appointment changes *@
                 <form id="editForm" method="post" action="/Appointments/EditFromCalendar">
                     @Html.AntiForgeryToken()
+                    <!-- Hidden fields to carry data to backend -->
+
                     <input type="hidden" id="eventId" name="Id" />
+                    <input type="hidden" id="serviceId" name="ServiceId" />
+                    <input type="hidden" id="selectedAppointmentDateTime" name="SelectedAppointmentDateTime" />
+
+                    <!-- Display user information -->
 
                     <div class="mb-3">
-                        <label for="appointmentTime" class="form-label">Start Time</label>
-                        <input type="datetime-local" class="form-control" id="appointmentTime" name="AppointmentTime" />
+                        <label for="userName" class="form-label">User Name</label>
+                        <input type="text" class="form-control" id="userName" name="UserName"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="userPhone" class="form-label">User Phone</label>
+                        <input type="text" class="form-control" id="userPhone" name="UserPhone" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="userEmail" class="form-label">User Mail</label>
+                        <input type="text" class="form-control" id="userEmail" name="userEmail" />
+                    </div>
+
+                    <!-- Appointment time + status -->
+
+                    <div class="mb-3">
+                        <label for="selectedDate" class="form-label">Step 1: Select Date</label>
+                        <input type="date" class="form-control" id="selectedDate" name="selectedDate" />
+
+                        <div class="card-body">
+                            <div id="timeSlotsContainer">
+                                <p class="text-muted">
+                                    <i class="bi bi-info-circle"></i> Please select a date first to see available time slots
+                                </p>
+                            </div>
+                            <div id="loadingSpinner" class="text-center d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading available times...</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -45,6 +83,7 @@
 
 
     <script>
+        // Helper to format date for input[type=datetime-local]
         function formatDateForInput(date) {
             if (!date) return '';
             const pad = (n) => n.toString().padStart(2, '0');
@@ -54,31 +93,80 @@
                    pad(date.getHours()) + ':' +
                    pad(date.getMinutes());
         }
+
+        // Function to handle slot selection
+        function selectSlot(dateStr, slotTime) {
+            document.getElementById('selectedAppointmentDateTime').value = dateStr; // 2025-12-06T17:30
+            console.log("Selected date:", dateStr, "time:", slotTime);
+        }
+
+        // FullCalendar initialization
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
+                timeZone: 'local',
                 initialView: 'timeGridWeek', // or 'dayGridMonth'
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay',
                 },
-                locale: 'fr',
+                locale: 'en',
                 events: '/Appointments/GetEvents',
                 // Event Click Handler
                 // Run when a user clicks an appointment event
                 eventClick: function(info) {
                         document.getElementById('eventId').value = info.event.id;
-                        document.getElementById('appointmentTime').value = formatDateForInput(info.event.start);
+                        document.getElementById('selectedDate').value = formatDateForInput(info.event.start);
                         document.getElementById('notes').value = info.event.extendedProps.notes || '';
                         document.getElementById('status').value = info.event.extendedProps.status || 'Pending';
+                        document.getElementById('userName').value = info.event.extendedProps.userName || '';
+                        document.getElementById('userPhone').value = info.event.extendedProps.userPhone || '';
+                        document.getElementById('userEmail').value = info.event.extendedProps.email || '';
 
-                    
+                        // handle select date
+                        document.getElementById('selectedDate').addEventListener('change', function () {
+                            var date = this.value;
+                            var serviceId = info.event.extendedProps.serviceId;
+
+                            loadSlots(serviceId, this.value);
+
+                        });
+               
+                        // Load available time slots from server
+                        function loadSlots(serviceId, date) {
+
+                            document.getElementById('timeSlotsContainer').innerHTML = '<p>Loading...</p>';
+
+                            fetch(`/Appointments/GetAvailableSlots?date=${date}&serviceId=${serviceId}`)
+                                .then(res => res.json())
+                                .then(slots => showSlots(slots))
+                                
+                        }
+
+                        // Display time slot buttons
+                        function showSlots(slots) {
+                            let html = '';
+
+                            if (slots.length === 0) {
+                                html = '<p class="text-warning">No available time slots</p>';
+                            } else {
+                                slots.forEach(slot => {
+                                    html += `<button type="button" class="btn btn-outline-primary m-1"
+                                                     onclick="selectSlot('${slot.datetime}', '${slot.display}')">
+                                                ${slot.display}
+                                             </button>`;
+                                });
+                            }
+
+                            document.getElementById('timeSlotsContainer').innerHTML = html;
+                        }
+                      
 
                         var modal = new bootstrap.Modal(document.getElementById('editModal'));
                         modal.show();
-                    }
+                }
 
             });
 
