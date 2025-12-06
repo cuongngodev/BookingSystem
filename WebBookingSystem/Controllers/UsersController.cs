@@ -25,7 +25,31 @@ namespace WebBookingSystem.Controllers
             return View(users);
         }
         #endregion
+        #region GET: Users (Admin Only)
+        [Authorize(Roles = "Admin")]
+        public IActionResult SearchByName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return Json(new { success = false, message = "Please enter a name." });
 
+            var users = _unitOfWork.UserRepository.GetAllUsers();
+
+            users.Where(
+                user => user.LastName.Contains(name, StringComparison.OrdinalIgnoreCase) ||
+                user.FirstName.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .Select(user => new
+                {
+                    user.Email,
+                    FullName = $"{user.FirstName}, {user.LastName}",
+                    user.PhoneNumber
+                })
+                .ToList();
+            // if no user found
+            if (!users.Any()) return null;
+
+            return Ok(users);
+        }
+        #endregion
 
         #region GET: Users/Details/{id}
         [Authorize]
