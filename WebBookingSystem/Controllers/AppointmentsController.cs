@@ -37,6 +37,10 @@ namespace WebBookingSystem.Controllers
 
         public IActionResult Manage()
         {
+            var services = _unitOfWork.ServiceRepository.GetAll();
+
+            // pass to the view
+            ViewBag.Services = services;
             return View(); 
         }
         /// <summary>
