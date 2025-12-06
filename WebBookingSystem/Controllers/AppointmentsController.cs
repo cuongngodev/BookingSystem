@@ -136,11 +136,11 @@ namespace WebBookingSystem.Controllers
         #region POST: Delete from Calender
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteFromCalender (int id)
+        public IActionResult CancelFromCalender (int id)
         {
             try
             {
-                _logger.LogInformation($"Attempting to delete appointment ID from Calender {id}.");
+                _logger.LogInformation($"Attempting to cancel appointment ID from Calender {id}.");
                 var appointment = _unitOfWork.AppointmentRepository.GetById(id);
 
                 if (appointment != null)
