@@ -16,7 +16,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 @* Hidden form for cancel action *@
-                <form id="cancelForm" method="post" asp-controller="Appointments" asp-action="DeleteFromCalender" class="d-none">
+                <form id="cancelForm" method="post" asp-controller="Appointments" asp-action="CancelFromCalender" class="d-none">
                     @Html.AntiForgeryToken()
                     <input type="hidden" id="cancelAppointmentId" name="id" />
                 </form>
