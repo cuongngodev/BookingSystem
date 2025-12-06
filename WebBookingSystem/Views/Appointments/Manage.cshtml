@@ -142,8 +142,13 @@
 
                         <div class="mb-3">
                             <label for="userName" class="form-label">User Name</label>
-                            <input type="text" id="userName" name="UserName" class="form-control" placeholder="Enter Name" />
+                            <input type="text" id="userNameSearch" name="UserName" class="form-control" placeholder="Enter Name" />
+                            <!-- Dropdown results -->
+                            <div id="userSuggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
                         </div>
+
+                        <!-- Hidden field to store selected user ID -->
+                        <input type="hidden" id="userId" name="UserId" />
 
                         <!-- Notes -->
                         <div class="mb-3">
@@ -163,6 +168,16 @@
     </div>
 
     <script>
+
+        function selectUser(user) {
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userNameSearch').value = `${user.firstName} ${user.lastName}`;
+            document.getElementById('userEmail').value = user.email || "";
+            document.getElementById('userPhone').value = user.phoneNumber || "";
+
+            // clear dropdown
+            suggestionsDiv.innerHTML = "";
+        }
         function toLocalInputFormat(dateStr) {
           const date = new Date(dateStr); // Parse ISO string
           const year = date.getFullYear();
@@ -290,17 +305,17 @@
                         var modal = new bootstrap.Modal(document.getElementById('editModal'));
                         modal.show();
                 },
-                     dateClick: function (info) {
-                        console.log("Clicked:", info.dateStr);
-                        const formatted = toLocalInputFormat(info.dateStr);
+                dateClick: function (info) {
+                    console.log("Clicked:", info.dateStr);
+                    const formatted = toLocalInputFormat(info.dateStr);
 
-                        console.log("Original:", info.dateStr);
-                        console.log("Converted:", formatted);
-                        document.getElementById('appointmentDateTime').value = formatted;
+                    console.log("Original:", info.dateStr);
+                    console.log("Converted:", formatted);
+                    document.getElementById('appointmentDateTime').value = formatted;
 
 
-                        var modal = new bootstrap.Modal(document.getElementById('createModal'));
-                        modal.show();
+                    var modal = new bootstrap.Modal(document.getElementById('createModal'));
+                    modal.show();
                 }
 
             });
@@ -317,9 +332,49 @@
                     document.getElementById('cancelForm').submit();
                 }
             })
-        });
 
-        
+
+            const nameInput = document.getElementById('userName');
+            const suggestionsDiv = document.getElementById('userSuggestions');
+            // fetch user when search
+            document.getElementById('userNameSearch').addEventListener('input', () => {
+                let searchTimer;
+
+                clearTimeout(searchTimer);
+
+                const name = document.getElementById('userNameSearch').value.trim();
+                if (!name) return alert("Enter a name to search.");
+                    // Debounce: wait 400ms after typing stops
+                searchTimer = setTimeout(() => {
+                    fetch(`/Users/SearchByName?name=${encodeURIComponent(name)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            suggestionsDiv.innerHTML = ""; // clear old results
+
+                            // Handle no results
+                            if (!data || !data.length) {
+                                suggestionsDiv.innerHTML = `<div class="list-group-item text-muted">No users found</div>`;
+                                return;
+                            }
+
+                            // Populate suggestions
+                            data.forEach(user => {
+                                const item = document.createElement("button");
+                                item.type = "button";
+                                item.className = "list-group-item list-group-item-action";
+                                item.textContent = `${user.firstName} ${user.lastName} - ${user.PhoneNumber}`;
+                                item.onclick = () => selectUser(user);
+                                suggestionsDiv.appendChild(item);
+                            });
+                        })
+                        .catch(err => {
+                            console.error("Error fetching users:", err);
+                            suggestionsDiv.innerHTML = `<div class="list-group-item text-danger">Error loading users</div>`;
+                        });
+                }, 400);
+            });
+
+        });  
     </script>
 
 </div>
