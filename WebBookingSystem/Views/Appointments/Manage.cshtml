@@ -5,13 +5,22 @@
 
 @* This is a calender view is for admin where he can take action on current appointments such as modify, update *@
 <div class="container mt-3">
+
     <h2>Bookings Calendar</h2>
+
     @* Full container calender *@
     <div id="calendar"></div>
+
     <!-- Edit Appointment Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
+                @* Hidden form for cancel action *@
+                <form id="cancelForm" method="post" asp-controller="Appointments" asp-action="DeleteFromCalender" class="d-none">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="cancelAppointmentId" name="id" />
+                </form>
+
                 @* Form to submit appointment changes *@
                 <form id="editForm" method="post" action="/Appointments/EditFromCalendar">
                     @Html.AntiForgeryToken()
@@ -20,6 +29,9 @@
                     <input type="hidden" id="eventId" name="Id" />
                     <input type="hidden" id="serviceId" name="ServiceId" />
                     <input type="hidden" id="selectedAppointmentDateTime" name="SelectedAppointmentDateTime" />
+
+
+                   
 
                     <!-- Display user information -->
 
@@ -43,6 +55,8 @@
                     <div class="mb-3">
                         <label for="selectedDate" class="form-label">Step 1: Select Date</label>
                         <input type="date" class="form-control" id="selectedDate" name="selectedDate" />
+
+                        <!-- Inform status to user -->
 
                         <div class="card-body">
                             <div id="timeSlotsContainer">
@@ -73,7 +87,14 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <button type="submit" class="btn btn-primary">
+                        Save changes
+                    </button>
+                    <button type="button" class="btn btn-danger" id="cancelAppointmentBtn">
+                        Cancel Appointment
+                        </button>
+
+
                 </form>
 
             </div>
@@ -99,7 +120,34 @@
             document.getElementById('selectedAppointmentDateTime').value = dateStr; // 2025-12-06T17:30
             console.log("Selected date:", dateStr, "time:", slotTime);
         }
+        // Load available time slots from server
+         function loadSlots(serviceId, date) {
 
+            document.getElementById('timeSlotsContainer').innerHTML = '<p>Loading...</p>';
+
+            fetch(`/Appointments/GetAvailableSlots?date=${date}&serviceId=${serviceId}`)
+            .then(res => res.json())
+            .then(slots => showSlots(slots))
+
+          }
+
+          // Display time slot buttons
+          function showSlots(slots) {
+                let html = '';
+
+                if (slots.length === 0) {
+                 html = '<p class="text-warning">No available time slots</p>';
+                } else {
+                                slots.forEach(slot => {
+                                    html += `<button type="button" class="btn btn-outline-primary m-1"
+                                                     onclick="selectSlot('${slot.datetime}', '${slot.display}')">
+                                                ${slot.display}
+                                             </button>`;
+                                });
+                            }
+
+                            document.getElementById('timeSlotsContainer').innerHTML = html;
+                        }
         // FullCalendar initialization
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
@@ -116,11 +164,15 @@
                 events: '/Appointments/GetEvents',
                 // Event Click Handler
                 // Run when a user clicks an appointment event
-                eventClick: function(info) {
+                eventClick: function(info) { // a callback func triggered when user click the appointment item event on the calendar, provides the para 'info', an obj js includes all details
+                    // Display all the field
                         document.getElementById('eventId').value = info.event.id;
+                        document.getElementById('cancelAppointmentId').value = info.event.id;
+
                         document.getElementById('selectedDate').value = formatDateForInput(info.event.start);
                         document.getElementById('notes').value = info.event.extendedProps.notes || '';
                         document.getElementById('status').value = info.event.extendedProps.status || 'Pending';
+
                         document.getElementById('userName').value = info.event.extendedProps.userName || '';
                         document.getElementById('userPhone').value = info.event.extendedProps.userPhone || '';
                         document.getElementById('userEmail').value = info.event.extendedProps.email || '';
@@ -134,35 +186,9 @@
 
                         });
                
-                        // Load available time slots from server
-                        function loadSlots(serviceId, date) {
-
-                            document.getElementById('timeSlotsContainer').innerHTML = '<p>Loading...</p>';
-
-                            fetch(`/Appointments/GetAvailableSlots?date=${date}&serviceId=${serviceId}`)
-                                .then(res => res.json())
-                                .then(slots => showSlots(slots))
-                                
-                        }
-
-                        // Display time slot buttons
-                        function showSlots(slots) {
-                            let html = '';
-
-                            if (slots.length === 0) {
-                                html = '<p class="text-warning">No available time slots</p>';
-                            } else {
-                                slots.forEach(slot => {
-                                    html += `<button type="button" class="btn btn-outline-primary m-1"
-                                                     onclick="selectSlot('${slot.datetime}', '${slot.display}')">
-                                                ${slot.display}
-                                             </button>`;
-                                });
-                            }
-
-                            document.getElementById('timeSlotsContainer').innerHTML = html;
-                        }
+                       
                       
+                        // Show the Bootstrap modal so admin can edit details
 
                         var modal = new bootstrap.Modal(document.getElementById('editModal'));
                         modal.show();
@@ -172,7 +198,19 @@
 
 
             calendar.render();
+
+            // Handle appointment cancel button event
+            document.getElementById("cancelAppointmentBtn").addEventListener('click', () => {
+                const appointmentId = document.getElementById('eventId').value;
+                console.log(appointmentId);
+                if(confirm("Are you sure you want to cancel this appointment?")){
+                    document.getElementById('cancelAppointmentId').value = appointmentId;
+                    document.getElementById('cancelForm').submit();
+                }
+            })
         });
+
+        
     </script>
 
 </div>

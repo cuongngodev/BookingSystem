@@ -126,6 +126,43 @@ namespace WebBookingSystem.Controllers
             }
 
         }
+        /// <summary>
+        /// Cancel the appointment from Calender view, called when admin click "Delete Appointment" button in the modal.
+        /// This action deletes the appointment record from the database, redirects back to the Manage view.
+        /// Notes: later the appointment cancellation can be soft-delete instead of hard delete.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        #region POST: Delete from Calender
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteFromCalender (int id)
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to delete appointment ID from Calender {id}.");
+                var appointment = _unitOfWork.AppointmentRepository.GetById(id);
+
+                if (appointment != null)
+                {
+                    _unitOfWork.AppointmentRepository.Delete(appointment);
+                    _unitOfWork.AppointmentRepository.SaveAll();
+                    _logger.LogInformation($"Successfully deleted appointment ID {id}.");
+                }
+                else
+                {
+                    _logger.LogWarning($"Delete operation: Appointment ID {id} not found.");
+                }
+                return RedirectToAction("Manage");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting appointment ID {id}.");
+                return RedirectToAction("Manage");
+            }
+
+        }
+        #endregion
 
         #region GET: Appointments (Admin)
         [Authorize(Roles = "Admin,Employee,Customer")] // allow all role to visit, but different data
