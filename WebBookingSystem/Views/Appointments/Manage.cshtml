@@ -51,13 +51,13 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="userPhone" class="form-label">User Phone</label>
-                                <input type="text" class="form-control" id="userPhone" name="UserPhone" />
+                                <label for="userPhoneEdit" class="form-label">User Phone</label>
+                                <input type="text" class="form-control" id="userPhoneEdit" name="UserPhone" />
                             </div>
 
                             <div class="mb-3">
-                                <label for="userEmail" class="form-label">User Mail</label>
-                                <input type="text" class="form-control" id="userEmail" name="userEmail" />
+                                <label for="userEmailEdit" class="form-label">User Mail</label>
+                                <input type="text" class="form-control" id="userEmailEdit" name="userEmail" />
                             </div>
 
                             <!-- Appointment time + status -->
@@ -137,9 +137,10 @@
                     <div class="modal-body">
 
                         <!-- Appointment Date & Time -->
+                        @* make the time unchangeable *@
                         <div class="mb-3">
                             <label for="appointmentDateTime" class="form-label">Selected Date & Time</label>
-                            <input type="datetime-local" id="appointmentDateTime" name="AppointmentTime" class="form-control" required readonly />
+                            <input type="datetime-local" id="appointmentDateTime" name="SelectedAppointmentDateTime" class="form-control" required readonly />
                         </div>
 
                         <!-- Service -->
@@ -157,8 +158,8 @@
 
                         <!-- User Info -->
                         <div class="mb-3">
-                            <label for="userPhone" class="form-label">Phone Number</label>
-                            <input type="text" id="userPhone" name="UserPhone" class="form-control" placeholder="Enter phone" />
+                            <label for="userPhoneCreate" class="form-label">Phone Number</label>
+                            <input type="text" id="userPhoneCreate" name="UserPhoneCreate" class="form-control" placeholder="Enter phone" />
                         </div>
 
                         <div class="mb-3">
@@ -166,6 +167,10 @@
                             <input type="text" id="userNameSearch" name="UserName" class="form-control" placeholder="Enter Name" />
                             <!-- Dropdown results -->
                             <div id="userSuggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmailCreate" class="form-label">Email</label>
+                            <input type="text" id="userEmailCreate" name="UserEmail" class="form-control" placeholder="Enter email" />
                         </div>
 
                         <!-- Hidden field to store selected user ID -->
@@ -189,16 +194,19 @@
     </div>
 
     <script>
-
+        // Function to handle user selection from search results, it will populate the create form fields, a
         function selectUser(user) {
+            // console.log("Selected user:", user);
             document.getElementById('userId').value = user.id;
-            document.getElementById('userNameSearch').value = `${user.firstName} ${user.lastName}`;
-            document.getElementById('userEmail').value = user.email || "";
-            document.getElementById('userPhone').value = user.phoneNumber || "";
+            document.getElementById('userNameSearch').value = `${user.fullName}`;
+            document.getElementById('userEmailCreate').value = user.email || "";
+            document.getElementById('userPhoneCreate').value = user.phoneNumber || "";
 
             // clear dropdown
-            suggestionsDiv.innerHTML = "";
+            document.getElementById('userSuggestions').innerHTML=""
         }
+
+        // Convert ISO date string to local datetime-local input format
         function toLocalInputFormat(dateStr) {
           const date = new Date(dateStr); // Parse ISO string
           const year = date.getFullYear();
@@ -208,6 +216,8 @@
           const minutes = String(date.getMinutes()).padStart(2, '0');
           return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
+
+        // Function to handle date click on calendar
         function handleDateClick(infor){
             let seletedDate = formatDateForInput(infor.dateStr);
             console.log(seletedDate)
@@ -216,6 +226,7 @@
             // var modal = new bootstrap.Modal(document.getElementById('editModal'));
             // modal.show();
         }
+
         // Helper to format date for input[type=datetime-local]
         function convertToYYYYMMDD(date){
             if(date){
@@ -227,6 +238,7 @@
             }
             return null
         }
+        // Helper to format date for input[type=datetime-local]
         function formatDateForInput(date) {
             if (!date) return '';
             const pad = (n) => n.toString().padStart(2, '0');
@@ -270,7 +282,8 @@
 
                     document.getElementById('timeSlotsContainer').innerHTML = html;
                 }
-        // FullCalendar initialization
+
+        // FullCalendar initialization, Allow admin to manage the appointments (Create, Modify, Cancel) by click on any point in the calendar.)
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
 
@@ -307,7 +320,7 @@
                         document.getElementById('status').value = info.event.extendedProps.status || 'Pending';
 
                         document.getElementById('userName').value = info.event.extendedProps.userName || '';
-                        document.getElementById('userPhone').value = info.event.extendedProps.userPhone || '';
+                        document.getElementById('userPhoneEdit').value = info.event.extendedProps.userPhone || '';
                         document.getElementById('userEmail').value = info.event.extendedProps.email || '';
 
                         // handle select date
@@ -318,14 +331,13 @@
                             loadSlots(serviceId, this.value);
 
                         });
-               
-                       
-                      
+
                         // Show the Bootstrap modal so admin can edit details
 
                         var modal = new bootstrap.Modal(document.getElementById('editModal'));
                         modal.show();
                 },
+                // Handle date click to create new appointment
                 dateClick: function (info) {
                     console.log("Clicked:", info.dateStr);
                     const formatted = toLocalInputFormat(info.dateStr);
@@ -341,7 +353,6 @@
 
             });
 
-
             calendar.render();
 
             // Handle appointment cancel button event
@@ -354,11 +365,10 @@
                 }
             })
 
-
-            const nameInput = document.getElementById('userName');
-            const suggestionsDiv = document.getElementById('userSuggestions');
-            // fetch user when search
+            // fetch user when search by name input, after select the user, populate the form fields
             document.getElementById('userNameSearch').addEventListener('input', () => {
+                const nameInput = document.getElementById('userName');
+                const suggestionsDiv = document.getElementById('userSuggestions');
                 let searchTimer;
 
                 clearTimeout(searchTimer);
@@ -377,13 +387,14 @@
                                 suggestionsDiv.innerHTML = `<div class="list-group-item text-muted">No users found</div>`;
                                 return;
                             }
+                            console.log(data)
 
                             // Populate suggestions
                             data.forEach(user => {
                                 const item = document.createElement("button");
                                 item.type = "button";
                                 item.className = "list-group-item list-group-item-action";
-                                item.textContent = `${user.firstName} ${user.lastName} - ${user.PhoneNumber}`;
+                                item.textContent = `${user.fullName} - ${user.phoneNumber}`;
                                 item.onclick = () => selectUser(user);
                                 suggestionsDiv.appendChild(item);
                             });
@@ -397,8 +408,4 @@
 
         });  
     </script>
-
 </div>
-
-<!-- Read-only calendar script -->
-
