@@ -239,7 +239,7 @@ namespace WebBookingSystem.Controllers
                 appointments = _unitOfWork.AppointmentRepository
                     .GetAll()
                     .Include(a => a.Service)
-                    //.Include(a => a.User)
+                    .Include(a => a.Client)
                     .OrderByDescending(a => a.AppointmentTime)
                     .ToList();
             }
