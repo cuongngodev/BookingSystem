@@ -7,5 +7,7 @@ namespace WebBookingSystem.Data.Intefaces
     {
         ServiceRepository ServiceRepository { get; }
         AppointmentRepository AppointmentRepository { get; }
+
+        UserRepository UserRepository { get; }
     }
 }
