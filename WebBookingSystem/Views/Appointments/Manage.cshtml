@@ -1,0 +1,411 @@
+﻿@{
+    ViewData["Title"] = "Calendar";
+    Layout = "_Layout";
+}
+@* Todo: 
+    Someone need to fix the Users endpoint
+    Set serviceId, userId, notes?, Time,
+    Add admin page.
+*@
+
+@* This is a calender view is for admin where he can take action on current appointments such as modify, update *@
+<div class="container mt-3">
+
+    <h2>Bookings Calendar</h2>
+
+    @* Full container calender *@
+    <div id="calendar"></div>
+
+    <!-- Edit Appointment Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                @* Hidden form for cancel action *@
+                <form id="cancelForm" method="post" asp-controller="Appointments" asp-action="CancelFromCalender" class="d-none">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="cancelAppointmentId" name="id" />
+                </form>
+
+                @* Form to submit appointment changes *@
+                <form id="editForm" method="post" action="/Appointments/EditFromCalendar">
+                    @Html.AntiForgeryToken()
+                    <!-- Hidden fields to carry data to backend -->
+
+                    <input type="hidden" id="eventId" name="Id" />
+                    <input type="hidden" id="serviceId" name="ServiceId" />
+                    <input type="hidden" id="selectedAppointmentDateTime" name="SelectedAppointmentDateTime" />
+
+                    <!-- Modal Header -->
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="editModalLabel">Edit Appointment</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- user information -->
+                    <div class="card mb-3 shadow-sm border-0">
+                        <div class="card-header bg-light fw-bold">Client Information</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="userName" class="form-label">User Name</label>
+                                <input type="text" class="form-control" id="userName" name="UserName"/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="userPhoneEdit" class="form-label">User Phone</label>
+                                <input type="text" class="form-control" id="userPhoneEdit" name="UserPhone" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="userEmailEdit" class="form-label">User Mail</label>
+                                <input type="text" class="form-control" id="userEmailEdit" name="userEmail" />
+                            </div>
+
+                            <!-- Appointment time + status -->
+                            <div class="card mb-3 shadow-sm border-0">
+                                <div class="card-header bg-light fw-bold">Appointment Details</div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label for="selectedDate" class="form-label">Select Date</label>
+                                        <input type="date" class="form-control" id="selectedDate" name="selectedDate" />
+
+                                        <!-- Inform status to user -->
+
+                                        <div class="card-body">
+                                            <div id="timeSlotsContainer">
+                                                <p class="text-muted">
+                                                    <i class="bi bi-info-circle"></i> Please select a date first to see available time slots
+                                                </p>
+                                            </div>
+                                            <div id="loadingSpinner" class="text-center d-none">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <p class="mt-2">Loading available times...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label">Notes</label>
+                                        <textarea class="form-control" id="notes" name="Notes"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Status</label>
+                                        <select class="form-control" id="status" name="Status">
+                                            <option value="Pending">Pending</option>
+                                            <option value="Confirmed">Confirmed</option>
+                                            <option value="Cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="modal-footer d-flex justify-content-between">
+                        <button type="button" class="btn btn-danger" id="cancelAppointmentBtn">
+                            <i class="bi bi-x-circle"></i> Cancel Appointment
+                        </button>
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Appointment Modal: Display when user select the date container on the calendar, --> 
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="createForm" method="post" action="/Appointments/CreateFromCalendar">
+                    @Html.AntiForgeryToken()
+
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="createModalLabel">Create New Appointment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <!-- Appointment Date & Time -->
+                        @* make the time unchangeable *@
+                        <div class="mb-3">
+                            <label for="appointmentDateTime" class="form-label">Selected Date & Time</label>
+                            <input type="datetime-local" id="appointmentDateTime" name="SelectedAppointmentDateTime" class="form-control" required readonly />
+                        </div>
+
+                        <!-- Service -->
+                        <div class="mb-3">
+                            <label for="serviceId" class="form-label">Select Service</label>
+                            <select id="serviceId" name="ServiceId" class="form-select" required>
+                                <option value="">-- Select a Service --</option>
+                                @* Dynamically populated Service *@
+                                @foreach (var service in ViewBag.Services ?? new List<BookingSystem.Data.Entities.Service>())
+                                {
+                                    <option value="@service.Id">@service.Name (@service.Duration min)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- User Info -->
+                        <div class="mb-3">
+                            <label for="userPhoneCreate" class="form-label">Phone Number</label>
+                            <input type="text" id="userPhoneCreate" name="UserPhoneCreate" class="form-control" placeholder="Enter phone" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">User Name</label>
+                            <input type="text" id="userNameSearch" name="UserName" class="form-control" placeholder="Enter Name" />
+                            <!-- Dropdown results -->
+                            <div id="userSuggestions" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmailCreate" class="form-label">Email</label>
+                            <input type="text" id="userEmailCreate" name="UserEmail" class="form-control" placeholder="Enter email" />
+                        </div>
+
+                        <!-- Hidden field to store selected user ID -->
+                        <input type="hidden" id="userId" name="UserId" />
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <textarea id="notes" name="Notes" class="form-control" rows="2"></textarea>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Appointment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to handle user selection from search results, it will populate the create form fields, a
+        function selectUser(user) {
+            // console.log("Selected user:", user);
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userNameSearch').value = `${user.fullName}`;
+            document.getElementById('userEmailCreate').value = user.email || "";
+            document.getElementById('userPhoneCreate').value = user.phoneNumber || "";
+
+            // clear dropdown
+            document.getElementById('userSuggestions').innerHTML=""
+        }
+
+        // Convert ISO date string to local datetime-local input format
+        function toLocalInputFormat(dateStr) {
+          const date = new Date(dateStr); // Parse ISO string
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Function to handle date click on calendar
+        function handleDateClick(infor){
+            let seletedDate = formatDateForInput(infor.dateStr);
+            console.log(seletedDate)
+            document.getElementById('selectedDate').value = seletedDate;
+
+            // var modal = new bootstrap.Modal(document.getElementById('editModal'));
+            // modal.show();
+        }
+
+        // Helper to format date for input[type=datetime-local]
+        function convertToYYYYMMDD(date){
+            if(date){
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth()+1).padStart(2,'0');
+                const dd = String(date.getDate()).padStart(2,'0');
+                const formattedDAte =`${yyyy}-${mm}-${dd}`
+               return formattedDAte
+            }
+            return null
+        }
+        // Helper to format date for input[type=datetime-local]
+        function formatDateForInput(date) {
+            if (!date) return '';
+            const pad = (n) => n.toString().padStart(2, '0');
+            return date.getFullYear() + '-' +
+                   pad(date.getMonth() + 1) + '-' +
+                   pad(date.getDate()) + 'T' +
+                   pad(date.getHours()) + ':' +
+                   pad(date.getMinutes());
+        }
+
+        // Function to handle slot selection
+        function selectSlot(dateStr, slotTime) {
+            document.getElementById('selectedAppointmentDateTime').value = dateStr; // 2025-12-06T17:30
+            console.log("Selected date:", dateStr, "time:", slotTime);
+        }
+        // Load available time slots from server
+         function loadSlots(serviceId, date) {
+
+            document.getElementById('timeSlotsContainer').innerHTML = '<p>Loading...</p>';
+
+            fetch(`/Appointments/GetAvailableSlots?date=${date}&serviceId=${serviceId}`)
+            .then(res => res.json())
+            .then(slots => showSlots(slots))
+
+          }
+
+          // Display time slot buttons
+          function showSlots(slots) {
+                let html = '';
+
+                if (slots.length === 0) {
+                 html = '<p class="text-warning">No available time slots</p>';
+                } else {
+                        slots.forEach(slot => {
+                            html += `<button type="button" class="btn btn-outline-primary m-1"
+                                                onclick="selectSlot('${slot.datetime}', '${slot.display}')">
+                                        ${slot.display}
+                                        </button>`;
+                        });
+                    }
+
+                    document.getElementById('timeSlotsContainer').innerHTML = html;
+                }
+
+        // FullCalendar initialization, Allow admin to manage the appointments (Create, Modify, Cancel) by click on any point in the calendar.)
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                timeZone: 'local',
+                initialView: 'timeGridWeek', // or 'dayGridMonth'
+
+                height: 700,
+                aspectRatio: 1.5,     // width / height ratio (works better in month view)
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                },
+
+                // adjust working hours 
+                slotMinTime: "10:00:00",   
+                slotMaxTime: "20:00:00",   
+                scrollTime: "09:00:00",
+
+                // language
+                locale: 'en',
+                events: '/Appointments/GetEvents',
+
+                // Event Click Handler
+                // Run when a user clicks an appointment event
+                eventClick: function(info) { // a callback func triggered when user click the appointment item event on the calendar, provides the para 'info', an obj js includes all details
+                    // Display all the field
+                        document.getElementById('eventId').value = info.event.id;
+                        document.getElementById('cancelAppointmentId').value = info.event.id;
+
+                        document.getElementById('selectedDate').value = convertToYYYYMMDD(info.event.start);
+                        document.getElementById('notes').value = info.event.extendedProps.notes || '';
+                        document.getElementById('status').value = info.event.extendedProps.status || 'Pending';
+
+                        document.getElementById('userName').value = info.event.extendedProps.userName || '';
+                        document.getElementById('userPhoneEdit').value = info.event.extendedProps.userPhone || '';
+                        document.getElementById('userEmail').value = info.event.extendedProps.email || '';
+
+                        // handle select date
+                        document.getElementById('selectedDate').addEventListener('change', function () {
+                            var date = this.value;
+                            var serviceId = info.event.extendedProps.serviceId;
+
+                            loadSlots(serviceId, this.value);
+
+                        });
+
+                        // Show the Bootstrap modal so admin can edit details
+
+                        var modal = new bootstrap.Modal(document.getElementById('editModal'));
+                        modal.show();
+                },
+                // Handle date click to create new appointment
+                dateClick: function (info) {
+                    console.log("Clicked:", info.dateStr);
+                    const formatted = toLocalInputFormat(info.dateStr);
+
+                    console.log("Original:", info.dateStr);
+                    console.log("Converted:", formatted);
+                    document.getElementById('appointmentDateTime').value = formatted;
+
+
+                    var modal = new bootstrap.Modal(document.getElementById('createModal'));
+                    modal.show();
+                }
+
+            });
+
+            calendar.render();
+
+            // Handle appointment cancel button event
+            document.getElementById("cancelAppointmentBtn").addEventListener('click', () => {
+                const appointmentId = document.getElementById('eventId').value;
+                console.log(appointmentId);
+                if(confirm("Are you sure you want to cancel this appointment?")){
+                    document.getElementById('cancelAppointmentId').value = appointmentId;
+                    document.getElementById('cancelForm').submit();
+                }
+            })
+
+            // fetch user when search by name input, after select the user, populate the form fields
+            document.getElementById('userNameSearch').addEventListener('input', () => {
+                const nameInput = document.getElementById('userName');
+                const suggestionsDiv = document.getElementById('userSuggestions');
+                let searchTimer;
+
+                clearTimeout(searchTimer);
+
+                const name = document.getElementById('userNameSearch').value.trim();
+                if (!name) return alert("Enter a name to search.");
+                    // Debounce: wait 400ms after typing stops
+                searchTimer = setTimeout(() => {
+                    fetch(`/Users/SearchByName?name=${encodeURIComponent(name)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            suggestionsDiv.innerHTML = ""; // clear old results
+
+                            // Handle no results
+                            if (!data || !data.length) {
+                                suggestionsDiv.innerHTML = `<div class="list-group-item text-muted">No users found</div>`;
+                                return;
+                            }
+                            console.log(data)
+
+                            // Populate suggestions
+                            data.forEach(user => {
+                                const item = document.createElement("button");
+                                item.type = "button";
+                                item.className = "list-group-item list-group-item-action";
+                                item.textContent = `${user.fullName} - ${user.phoneNumber}`;
+                                item.onclick = () => selectUser(user);
+                                suggestionsDiv.appendChild(item);
+                            });
+                        })
+                        .catch(err => {
+                            console.error("Error fetching users:", err);
+                            suggestionsDiv.innerHTML = `<div class="list-group-item text-danger">Error loading users</div>`;
+                        });
+                }, 400);
+            });
+
+        });  
+    </script>
+</div>

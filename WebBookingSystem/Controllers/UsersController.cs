@@ -9,23 +9,51 @@ namespace WebBookingSystem.Controllers
     public class UsersController : Controller
     {
         private readonly ILogger<UsersController> _logger;
-        private readonly UnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UsersController(ILogger<UsersController> logger, UnitOfWork unitOfWork)
+        public UsersController(ILogger<UsersController> logger, IUnitOfWork unitOfWork)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves a list of all users matching the provided name. Accessible only to users with the Admin role, used when create a new appointment
+        /// </summary>
+        /// <returns>An <see cref="IActionResult"/> containing the collection of users.</returns>
         #region GET: Users (Admin Only)
         [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             var users = _unitOfWork.UserRepository.GetAllUsers();
-            return View(users);
+            return Ok(users);
         }
         #endregion
+        #region GET: Search User by Name (Admin Only)
+        [Authorize(Roles = "Admin")]
+        public IActionResult SearchByName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return Json(new { success = false, message = "Please enter a name." });
 
+            var users = _unitOfWork.UserRepository.GetAllUsers();
+
+            var result = users.Where(
+                user => user.LastName.ToLower().Contains(name) || user.FirstName.ToLower().Contains(name))
+                .Select(user => new
+                {
+                    user.Id,
+                    user.Email,
+                    FullName = $"{user.FirstName}, {user.LastName}",
+                    user.PhoneNumber
+                })
+                .ToList();
+            // if no user found
+            if (!result.Any()) return null;
+
+            return Ok(result);
+        }
+        #endregion
 
         #region GET: Users/Details/{id}
         [Authorize]
@@ -75,7 +103,7 @@ namespace WebBookingSystem.Controllers
             if (ModelState.IsValid)
             {
                 _unitOfWork.UserRepository.Add(user);
-                _unitOfWork.Save();
+                _unitOfWork.UserRepository.SaveAll();
                 return RedirectToAction(nameof(Index));
             }
 
@@ -113,7 +141,7 @@ namespace WebBookingSystem.Controllers
             if (ModelState.IsValid)
             {
                 _unitOfWork.UserRepository.Update(updatedUser);
-                _unitOfWork.Save();
+                _unitOfWork.UserRepository.SaveAll();
                 return RedirectToAction(nameof(Index));
             }
 
@@ -146,7 +174,7 @@ namespace WebBookingSystem.Controllers
             if (user != null)
             {
                 _unitOfWork.UserRepository.Delete(user);
-                _unitOfWork.Save();
+                _unitOfWork.UserRepository.SaveAll();
             }
 
             return RedirectToAction(nameof(Index));

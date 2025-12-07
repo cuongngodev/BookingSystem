@@ -3,11 +3,24 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+
+    <!-- FullCalendar Core -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
+
+    <!-- FullCalendar Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/daygrid.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/timegrid.global.min.js"></script>
+
     <title>@ViewData["Title"] - WebBookingSystem</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/WebBookingSystem.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+   
+
+
 </head>
 <body>
     <header>
@@ -29,6 +42,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Services" asp-action="Index">Service</a>
                         </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Appointments" asp-action="Manage">Manage </a>
+                            </li>
+                        }
                         @if(User.IsInRole("Admin") || User.IsInRole("Employee"))
                         {
                             <li class="nav-item">

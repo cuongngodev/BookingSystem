@@ -1,0 +1,35 @@
+﻿
+@{
+    ViewData["Title"] = "Calendar";
+    Layout = "_Layout";
+}
+
+
+<div class="container mt-3">
+    <h2>Bookings Calendar</h2>
+    <div id="calendar"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek', // or 'dayGridMonth'
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: 'fr',
+                events: '/Calendar/GetEvents'
+            });
+
+                //initialView: 'dayGridMonth'//'timeGridWeek'//'dayGridMonth','dayGridWeek',// 'dayGrid'
+          
+
+            calendar.render();
+        });
+    </script>
+
+</div>
+
+<!-- Read-only calendar script -->
