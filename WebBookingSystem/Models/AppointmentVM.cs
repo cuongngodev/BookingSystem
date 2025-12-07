@@ -2,7 +2,7 @@
 
 namespace WebBookingSystem.Models
 {
-    public class AppointmentEditVM
+    public class AppointmentVM
     {
         // Core identifiers
         public int Id { get; set; }
@@ -14,7 +14,7 @@ namespace WebBookingSystem.Models
         public string SelectedAppointmentDateTime { get; set; } = string.Empty;
 
         // Editable fields
-        public string Notes { get; set; } = string.Empty;
+        public string? Notes { get; set; } = string.Empty;
         public AppointmentStatus Status { get; set; }
 
         // --- Extra read-only display data ---
