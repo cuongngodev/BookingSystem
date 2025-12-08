@@ -4,7 +4,7 @@ using WebBookingSystem.Data.Intefaces;
 
 namespace WebBookingSystem.Data.Repositories
 {
-    public class UserRepository: GenericRepository<ApplicationUser>, IUserRepository
+    public class UserRepository : GenericRepository<ApplicationUser>, IUserRepository
     {
         private readonly ILogger<UserRepository> _logger;
 
@@ -26,10 +26,12 @@ namespace WebBookingSystem.Data.Repositories
         public ApplicationUser? GetUserById(int id)
         {
             _logger.LogInformation("Fetching user with ID {Id}.", id);
-            return _dbSet.Include(u => u.Appointments)
-                         .FirstOrDefault(u => u.Id == id);
+
+            return _dbSet
+                .Include(u => u.Appointments)          
+                    .ThenInclude(a => a.Service)      
+                .FirstOrDefault(u => u.Id == id);
         }
         #endregion
     }
 }
-

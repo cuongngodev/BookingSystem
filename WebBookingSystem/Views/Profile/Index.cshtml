@@ -1,0 +1,142 @@
+﻿@model BookingSystem.Data.Entities.ApplicationUser
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<section class="profile-display-section py-5 position-relative">
+    <div class="container">
+
+        <!-- Floating accents -->
+        <div class="floating-accent accent1"></div>
+        <div class="floating-accent accent2"></div>
+        <div class="floating-accent accent3"></div>
+        <div class="floating-accent accent4"></div>
+
+        <div class="card shadow-lg rounded-4 mx-auto p-4 gradient-card text-center" style="max-width:500px;">
+            <h3 class="fw-bold mb-3 text-pink-gradient">@Model.FirstName @Model.LastName</h3>
+            
+            <div class="mb-2"><strong>Email:</strong> @Model.Email</div>
+            <div class="mb-2"><strong>Username:</strong> @Model.UserName</div>
+            <div class="mb-3"><strong>Date Joined:</strong> @Model.DateJoined?.ToString("MMMM dd yyyy")</div>
+
+            <div class="d-flex justify-content-center gap-2 mt-4">
+                <a asp-controller="Profile" asp-action="Update" class="btn btn-gradient btn-lg shadow-sm">Edit Profile</a>
+                <a asp-controller="Appointments" asp-action="Index" class="btn btn-secondary btn-lg shadow-sm">View Appointments</a>
+            </div>
+            
+            <div class="d-flex justify-content-center gap-2 mt-4">
+                <form asp-controller="Profile" asp-action="DeleteAccount" method="post" onsubmit="return confirm('Are you sure you want to delete your account? This cannot be undone.')">
+                    <button type="submit" class="btn btn-danger btn-lg shadow-sm">Delete Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .gradient-card {
+        background: linear-gradient(135deg, #ffe6f2, #fdd0ff);
+        border: none;
+    }
+
+    .text-pink-gradient {
+        background: linear-gradient(90deg, #ff6ec7, #c77dff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #c77dff, #ff6ec7);
+        color: white;
+        border: none;
+        transition: all 0.3s ease-in-out;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #a64dd6, #ff3fc0);
+            transform: scale(1.05);
+        }
+
+    /* Floating accents */
+    .floating-accent {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.15;
+        z-index: 0;
+        animation: floatPulse 6s ease-in-out infinite alternate;
+    }
+
+    /* Individual sizes/colors */
+    .accent1 {
+        width: 150px;
+        height: 150px;
+        background: #c77dff;
+        top: -30px;
+        left: -30px;
+        animation-delay: 0s;
+    }
+
+    .accent2 {
+        width: 120px;
+        height: 120px;
+        background: #ff6ec7;
+        bottom: -20px;
+        right: -20px;
+        animation-delay: 1s;
+    }
+
+    .accent3 {
+        width: 100px;
+        height: 100px;
+        background: #ff99d1;
+        top: 50%;
+        left: -50px;
+        animation-delay: 0.5s;
+    }
+
+    .accent4 {
+        width: 80px;
+        height: 80px;
+        background: #d18eff;
+        bottom: 40%;
+        right: -40px;
+        animation-delay: 1.5s;
+    }
+
+    /* Floating and pulsing animation */
+    @@keyframes floatPulse {
+        0%{
+            transform: translateY(0px) scale(1);
+            opacity: 0.15;
+        }
+
+        50% {
+            transform: translateY(-20px) scale(1.05);
+            opacity: 0.2;
+        }
+
+        100% {
+            transform: translateY(0px) scale(1);
+            opacity: 0.15;
+        }
+
+    }
+
+
+    /* Icons for profile info */
+    p i {
+        color: #c77dff;
+        margin-right: 5px;
+    }
+    /* Modal header gradient */
+    .bg-pink-gradient {
+        background: linear-gradient(90deg, #ff6ec7, #c77dff);
+    }
+
+    /* Delete button hover */
+    .btn-danger:hover {
+        transform: scale(1.05);
+    }
+
+</style>

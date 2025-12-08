@@ -7,9 +7,16 @@
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark"
+               asp-controller="Profile"
+               asp-action="Index"
+               @* asp-route-id="@UserManager.GetUserId(User)" *@
+            >
+                Hello @User.Identity?.Name!
+            </a>
+
+        </li>
         <li class="nav-item">
             <a class="nav-link text-dark" href="javascript:void(0)" onclick="logoutUser()">Logout</a>
         </li>

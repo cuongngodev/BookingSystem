@@ -13,7 +13,7 @@ namespace BookingSystem.Data.Entities
         [MaxLength(50)]
         public string LastName { get; set; }
         [Required]
-        [MaxLength(100)]
+        //[MaxLength(100)]
         public DateTime? DateJoined { get; set; } = DateTime.Now;
 
         public ICollection<Appointment>? Appointments {get; set;}
