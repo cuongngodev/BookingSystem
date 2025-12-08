@@ -1,8 +1,261 @@
-﻿@{
+﻿@model IEnumerable<BookingSystem.Data.Entities.Service>
+
+@{
     ViewData["Title"] = "Home Page";
+    // Take top 5 services
+    var topServices = Model.Take(5).ToList();
+    // Map each service to a different icon
+    var icons = new Dictionary<string, string>
+    {
+        { "Haircut & Styling", "bi-scissors" },
+        { "Manicure & Pedicure", "bi-hand-index" },
+        { "Facial Treatment", "bi-emoji-smile" },
+        { "Hair Coloring", "bi-brush" },
+        { "Makeup Session", "bi-gem" }
+    };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- =======================
+      HERO SECTION
+======================= -->
+<section class="py-5 text-center text-white rounded shadow-sm mb-5 hero-section">
+    <div class="container position-relative text-center" style="z-index: 2;">
+        <h1 class="display-4 fw-bold hero-title">Beauty & Wellness, Just a Click Away</h1>
+        <p class="lead hero-subtitle">
+            Book your favorite salon services online — fast, easy, and secure.
+        </p>
+        <a class="btn btn-primary btn-lg mt-3 hero-btn" asp-controller="Services" asp-action="Index">
+            Browse Services
+        </a>
+    </div>
+</section>
+
+<style>
+        .hero-section {
+            background-image: url('/images/hero-background.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.35); /* semi-dark overlay */
+            z-index: 1;
+        }
+
+        .hero-section .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-btn {
+            background-color: white;
+            color: black;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .hero-btn:hover {
+            transform: scale(1.05);
+            background-color: #c77dff;
+            border-color: #c77dff;
+        }
+
+        .hero-title, .hero-subtitle {
+            animation: fadeInUp 1s ease forwards;
+        }
+</style>
+
+
+<!-- =======================
+      SERVICES SECTION
+======================= -->
+<section class="container mb-5">
+    <h2 class="text-center mb-4 fw-bold">Our Popular Services</h2>
+
+    <div class="row g-4 justify-content-center">
+        @foreach (var service in topServices)
+        {
+            var iconClass = icons.ContainsKey(service.Name) ? icons[service.Name] : "bi-stars";
+            <div class="col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+
+                        <!-- Icon  -->
+                        <div class="text-center mb-3">
+                            <i class="@iconClass" style="font-size: 2.5rem; color: #c77dff;"></i>
+                        </div>
+
+                        <h5 class="card-title text-center fw-bold">@service.Name</h5>
+
+                        <p class="text-muted text-center mb-1">
+                            <strong>Duration:</strong> @service.Duration min
+                        </p>
+
+                        <p class="text-muted text-center mb-3">
+                            <strong>Price:</strong> $@service.Price
+                        </p>
+
+                        <p class="card-text text-center small">
+                            @service.Description
+                        </p>
+
+                        <div class="text-center mt-3">
+                            <a class="btn btn-outline-primary service-btn"
+                               asp-controller="Services"
+                               asp-action="Details"
+                               asp-route-id="@service.Id">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+<style>
+    .service-btn{
+        border-color: black;
+        color: black;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .service-btn:hover {
+        transform: scale(1.05);
+        background-color: #c77dff;
+        border-color: #c77dff;
+    }
+</style>
+
+
+<!-- =======================
+      SOCIAL PROOF SECTION
+======================= -->
+<section class="py-5 bg-light mb-5">
+    <div class="container">
+        <h2 class="text-center fw-bold mb-4">What Our Clients Say</h2>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="p-4 shadow-sm bg-white rounded text-center h-100">
+                    <p class="fst-italic">
+                        “Booking online was so easy! The salon experience was amazing.”
+                    </p>
+                    <h6 class="fw-bold mt-3">— Emma</h6>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-4 shadow-sm bg-white rounded text-center h-100">
+                    <p class="fst-italic">
+                        “I love being able to reschedule without calling. Super convenient!”
+                    </p>
+                    <h6 class="fw-bold mt-3">— Sarah</h6>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-4 shadow-sm bg-white rounded text-center h-100">
+                    <p class="fst-italic">
+                        “The staff is professional and the services are top quality.”
+                    </p>
+                    <h6 class="fw-bold mt-3">— Olivia</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- =======================
+      ABOUT SECTION
+======================= -->
+<section class="container mb-5">
+    <div class="text-center">
+        <h2 class="fw-bold mb-3">About Our Salon</h2>
+        <p class="text-muted fs-5">
+            We provide high-quality beauty and wellness services with certified professionals,
+            modern equipment, and a relaxing environment. Your comfort and satisfaction are our priority.
+        </p>
+    </div>
+</section>
+
+
+<!-- =======================
+      FINAL CTA SECTION
+======================= -->
+<section class="py-5 text-center text-white rounded shadow-sm mb-5 final-section">
+    <div class="container position-relative" style="z-index:2;">
+        <h2 class="fw-bold final-title">Ready to Book Your Next Appointment?</h2>
+        <p class="mb-4 final-subtitle">Browse our services and secure your spot today.</p>
+
+        @if (User.Identity.IsAuthenticated)
+        {
+            <!-- User is logged in, go to Services page -->
+            <a class="btn btn-light btn-lg final-btn" asp-controller="Services" asp-action="Index">
+                Book Now
+            </a>
+        }
+        else
+        {
+            <!-- User is NOT logged in, go to Login page -->
+            <a class="btn btn-light btn-lg final-btn" asp-controller="Auth" asp-action="Login">
+                Log In
+            </a>
+        }
+    </div>
+</section>
+
+
+<style>
+        .final-section {
+            background-image: url('/images/final-background.jpg'); /* your CTA image */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
+            min-height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .final-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.35); /* semi-dark overlay */
+            z-index: 1;
+        }
+
+        .final-section .container {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-btn {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .final-btn:hover {
+            transform: scale(1.05);
+            background-color: #c77dff;
+            border-color: #c77dff;
+        }
+</style>
