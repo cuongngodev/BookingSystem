@@ -22,8 +22,16 @@ namespace WebBookingSystem.Controllers
             _logger.LogInformation("Accessed Home/Index at {Time}", DateTime.Now);
             try
             {
-                var services = await _context.Services.ToListAsync();
-                return View(services);
+                if (User.IsInRole("Admin"))
+                {
+                    _logger.LogInformation("Redirecting Admin user to Admin Dashboard at {Time}", DateTime.Now);
+                    return RedirectToAction("Index", "Admin");
+                }
+                else
+                {
+                    var services = await _context.Services.ToListAsync();
+                    return View(services);
+                }
             }
             catch (Exception ex)
             {
@@ -32,9 +40,9 @@ namespace WebBookingSystem.Controllers
             }
         }
 
-        public IActionResult Privacy()
+        public IActionResult AboutUs()
         {
-            _logger.LogInformation("Accessed Home/Privacy at {Time}", DateTime.Now);
+            _logger.LogInformation("Accessed Home/AboutUs at {Time}", DateTime.Now);
             return View();
         }
 

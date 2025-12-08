@@ -23,7 +23,8 @@ namespace WebBookingSystem.Controllers
         {
             _logger.LogInformation("Fetching all users (Admin)");
             var users = _unitOfWork.UserRepository.GetAllUsers();
-            return Ok(users);
+            //return Ok(users);
+            return View(users);
         }
 
         // GET: Users/SearchByName?name=...
