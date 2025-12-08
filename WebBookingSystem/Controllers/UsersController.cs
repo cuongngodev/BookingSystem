@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebBookingSystem.Data.Intefaces;
-using WebBookingSystem.Data.Repositories;
 
 namespace WebBookingSystem.Controllers
 {
@@ -17,29 +16,30 @@ namespace WebBookingSystem.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        /// <summary>
-        /// Retrieves a list of all users matching the provided name. Accessible only to users with the Admin role, used when create a new appointment
-        /// </summary>
-        /// <returns>An <see cref="IActionResult"/> containing the collection of users.</returns>
-        #region GET: Users (Admin Only)
+        // GET: Users (Admin Only)
+        // Fetches all users
         [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
+            _logger.LogInformation("Fetching all users (Admin)");
             var users = _unitOfWork.UserRepository.GetAllUsers();
             return Ok(users);
         }
-        #endregion
-        #region GET: Search User by Name (Admin Only)
+
+        // GET: Users/SearchByName?name=...
+        // Search users by first or last name (Admin Only)
         [Authorize(Roles = "Admin")]
         public IActionResult SearchByName(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning("SearchByName called with empty name");
                 return Json(new { success = false, message = "Please enter a name." });
+            }
 
             var users = _unitOfWork.UserRepository.GetAllUsers();
-
             var result = users.Where(
-                user => user.LastName.ToLower().Contains(name) || user.FirstName.ToLower().Contains(name))
+                user => user.LastName.ToLower().Contains(name.ToLower()) || user.FirstName.ToLower().Contains(name.ToLower()))
                 .Select(user => new
                 {
                     user.Id,
@@ -48,86 +48,87 @@ namespace WebBookingSystem.Controllers
                     user.PhoneNumber
                 })
                 .ToList();
-            // if no user found
-            if (!result.Any()) return null;
 
+            if (!result.Any())
+            {
+                _logger.LogInformation("No users found for search: {Name}", name);
+                return null;
+            }
+
+            _logger.LogInformation("Found {Count} users matching search: {Name}", result.Count, name);
             return Ok(result);
         }
-        #endregion
 
-        #region GET: Users/Details/{id}
+        // GET: Users/Details/{id}
         [Authorize]
         public IActionResult Details(int id)
         {
             var user = _unitOfWork.UserRepository.GetUserById(id);
             if (user == null)
             {
+                _logger.LogWarning("Details: User {UserId} not found", id);
                 return NotFound();
             }
+
+            _logger.LogInformation("Details: Viewing user {UserId}", id);
             return View(user);
         }
-        #endregion
 
-
-        #region GET: Users/Appointments/{id}
+        // GET: Users/Appointments/{id}
         [Authorize]
         public IActionResult Appointments(int id)
         {
             var user = _unitOfWork.UserRepository.GetUserById(id);
             if (user == null)
             {
+                _logger.LogWarning("Appointments: User {UserId} not found", id);
                 return NotFound();
             }
 
             var appointments = _unitOfWork.AppointmentRepository.GetAppointmentsByUser(id);
+            _logger.LogInformation("Appointments: Fetched {Count} appointments for user {UserId}", appointments.Count(), id);
             return View(appointments);
         }
-        #endregion
 
-
-        #region GET: Users/Create
+        // GET: Users/Create
         [AllowAnonymous]
-        public IActionResult Create()
-        {
-            return View();
-        }
-        #endregion
+        public IActionResult Create() => View();
 
-
-        #region POST: Users/Create
+        // POST: Users/Create
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(ApplicationUser user)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _unitOfWork.UserRepository.Add(user);
-                _unitOfWork.UserRepository.SaveAll();
-                return RedirectToAction(nameof(Index));
+                _logger.LogWarning("Create POST failed: ModelState invalid");
+                return View(user);
             }
 
-            return View(user);
+            _unitOfWork.UserRepository.Add(user);
+            _unitOfWork.UserRepository.SaveAll();
+
+            _logger.LogInformation("Created new user with email {Email}", user.Email);
+            return RedirectToAction(nameof(Index));
         }
-        #endregion
 
-
-        #region GET: Users/Edit/{id}
+        // GET: Users/Edit/{id}
         [Authorize]
         public IActionResult Edit(int id)
         {
             var user = _unitOfWork.UserRepository.GetUserById(id);
             if (user == null)
             {
+                _logger.LogWarning("Edit GET: User {UserId} not found", id);
                 return NotFound();
             }
 
+            _logger.LogInformation("Edit GET: User {UserId} loaded", id);
             return View(user);
         }
-        #endregion
 
-
-        #region POST: Users/Edit/{id}
+        // POST: Users/Edit/{id}
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -135,36 +136,39 @@ namespace WebBookingSystem.Controllers
         {
             if (id != updatedUser.Id)
             {
+                _logger.LogWarning("Edit POST: Mismatched IDs {Id} != {UpdatedId}", id, updatedUser.Id);
                 return BadRequest();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _unitOfWork.UserRepository.Update(updatedUser);
-                _unitOfWork.UserRepository.SaveAll();
-                return RedirectToAction(nameof(Index));
+                _logger.LogWarning("Edit POST: ModelState invalid for user {UserId}", id);
+                return View(updatedUser);
             }
 
-            return View(updatedUser);
+            _unitOfWork.UserRepository.Update(updatedUser);
+            _unitOfWork.UserRepository.SaveAll();
+            _logger.LogInformation("Edit POST: Updated user {UserId}", id);
+
+            return RedirectToAction(nameof(Index));
         }
-        #endregion
 
-
-        #region GET: Users/Delete/{id}
+        // GET: Users/Delete/{id}
         [Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
             var user = _unitOfWork.UserRepository.GetUserById(id);
             if (user == null)
             {
+                _logger.LogWarning("Delete GET: User {UserId} not found", id);
                 return NotFound();
             }
+
+            _logger.LogInformation("Delete GET: User {UserId} loaded", id);
             return View(user);
         }
-        #endregion
 
-
-        #region POST: Users/Delete/{id}
+        // POST: Users/Delete/{id}
         [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -175,10 +179,14 @@ namespace WebBookingSystem.Controllers
             {
                 _unitOfWork.UserRepository.Delete(user);
                 _unitOfWork.UserRepository.SaveAll();
+                _logger.LogInformation("DeleteConfirmed: Deleted user {UserId}", id);
+            }
+            else
+            {
+                _logger.LogWarning("DeleteConfirmed: User {UserId} not found", id);
             }
 
             return RedirectToAction(nameof(Index));
         }
-        #endregion
     }
 }
