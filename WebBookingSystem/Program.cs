@@ -43,15 +43,9 @@ namespace WebBookingSystem
 
                 var builder = WebApplication.CreateBuilder(args);
                 builder.Host.UseSerilog();
-                string connectionString;
-                if (builder.Environment.IsDevelopment())
-                {
-                    connectionString = builder.Configuration.GetConnectionString("AzureConnection");
-                }
-                else
-                {
-                    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-                }
+                
+                var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
                 // JWT setup
                 var jwtSettings = builder.Configuration.GetSection("Jwt");
