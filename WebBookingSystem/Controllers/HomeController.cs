@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using WebBookingSystem.Data;
 using WebBookingSystem.Models;
 
 namespace WebBookingSystem.Controllers
@@ -7,18 +9,21 @@ namespace WebBookingSystem.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             _logger.LogInformation("Accessed Home/Index at {Time}", DateTime.Now);
             try
             {
-                return View();
+                var services = await _context.Services.ToListAsync();
+                return View(services);
             }
             catch (Exception ex)
             {
