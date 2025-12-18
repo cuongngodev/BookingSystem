@@ -11,6 +11,8 @@
 ---
 
 ## 💡 Overview
+![Login](WebBookingSystem/ScreenShot/landing-page.png)
+
 The **Booking System** is a complete appointment-booking platform that helps businesses manage their **services, users, and appointments** in one place.  
 It demonstrates clean architecture, role-based authentication, and modern UI design.
 
@@ -21,11 +23,13 @@ It demonstrates clean architecture, role-based authentication, and modern UI des
 ## ✨ Features
 
 ### 👤 Authentication & Roles
+![Login](WebBookingSystem/ScreenShot/login.png)
 - Secure login and registration using **ASP.NET Core Identity**
 - Role-based access control:
   - **Admin** – Manage everything (services, users, appointments)
   - **Employee** – Manage appointments and view services
   - **Customer** – Book and view appointments
+
 
 ---
 
@@ -35,6 +39,8 @@ It demonstrates clean architecture, role-based authentication, and modern UI des
 - Sort by **name**, **duration**, or **price**
 - Paginated list for large datasets
 
+![Login](WebBookingSystem/ScreenShot/new-appointment.png)
+
 ---
 
 ### 📅 Appointment Management
@@ -43,6 +49,7 @@ It demonstrates clean architecture, role-based authentication, and modern UI des
 - Handle appointment status (Pending, Confirmed, Cancelled, Completed)
 - Time-zone aware date handling and validation
 - Admin and Employee views for management
+![Login](WebBookingSystem/ScreenShot/appointment-calender.png)
 
 ---
 
@@ -50,6 +57,7 @@ It demonstrates clean architecture, role-based authentication, and modern UI des
 - Admins can view all users and their roles
 - Search users by **name** or **phone**
 - Assign, update, or delete users directly from the dashboard
+![Login](WebBookingSystem/ScreenShot/manage-users.png)
 
 ---
 
@@ -58,6 +66,7 @@ A simple and modern control panel for administrators:
 - 📋 **Manage Services**
 - 📆 **Manage Appointments**
 - 👥 **Manage Users**
+![Login](WebBookingSystem/ScreenShot/admin-dashboard.png)
 
 > Provides instant access to all core features with smooth navigation.
 
